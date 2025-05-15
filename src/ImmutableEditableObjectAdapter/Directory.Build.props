@@ -30,21 +30,13 @@
   <PropertyGroup Label="Packing">
     <DebugType>embedded</DebugType>
     <DebugSymbols>true</DebugSymbols>
-    <NuGetPackageRoot Condition=" '$(Configuration)' == 'Release' ">$(MSBuildThisFileDirectory)</NuGetPackageRoot>
-    <ContinuousIntegrationBuild Condition=" '$(Configuration)' == 'Release' ">true</ContinuousIntegrationBuild>
     <Deterministic Condition=" '$(Configuration)' == 'Release' ">true</Deterministic>
-    <GeneratePackageOnBuild Condition=" '$(Configuration)' == 'Release' ">true</GeneratePackageOnBuild>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <AllowedOutputExtensionsInPackageBuildOutputFolder>
       $(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb;.xml
     </AllowedOutputExtensionsInPackageBuildOutputFolder>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
   </PropertyGroup>
-
-  <!--    Not needed as source link is inplace -->
-  <!--    <ItemGroup>-->
-  <!--        <SourceRoot Include="$([MSBuild]::EnsureTrailingSlash($(NuGetPackageRoot)))" Condition="'$(NuGetPackageRoot)' != ''"/>-->
-  <!--    </ItemGroup>-->
 
   <ItemGroup>
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All"/>
