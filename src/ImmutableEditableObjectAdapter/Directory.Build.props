@@ -39,7 +39,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)../../README.md" Link="." />
+    <Content Include="$(MSBuildThisFileDirectory)../../README.md" Link="README.md" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
