@@ -28,6 +28,8 @@ jobs:
       matrix:
         os: [ ubuntu-latest, windows-latest, macOS-latest ]
     steps:
+      - name: Support longpaths
+        run: git config --system core.longpaths true
       - name: "Checkout"
         uses: actions/checkout@v4
         with:
