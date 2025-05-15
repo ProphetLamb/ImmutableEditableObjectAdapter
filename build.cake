@@ -27,14 +27,12 @@ Task("Build")
     .IsDependentOn("Restore")
     .Does(() =>
     {
-        DeleteDirectories(GetDirectories("**/bin"), new DeleteDirectorySettings() { Force = true, Recursive = true });
-        DeleteDirectories(GetDirectories("**/obj"), new DeleteDirectorySettings() { Force = true, Recursive = true });
         DotNetBuild(
             ".",
             new DotNetBuildSettings()
             {
                 Configuration = configuration,
-                //NoRestore = true,
+                NoRestore = true,
             });
     });
 
