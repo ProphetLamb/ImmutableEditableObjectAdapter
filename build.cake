@@ -62,23 +62,25 @@ Task("Test")
 
 Task("Pack")
     .Description("Creates NuGet packages and outputs them to the artefacts directory.")
-    .Does(() =>
-    {
-        DotNetPack(
-            ".",
-            new DotNetPackSettings()
-            {
-                Configuration = configuration,
-                IncludeSymbols = true,
-                MSBuildSettings = new DotNetMSBuildSettings()
+    .DoesForEach(
+        GetFiles("./src/**/*.csproj"),
+        project =>
+        {
+            DotNetPack(
+                project.ToString(),
+                new DotNetPackSettings()
                 {
-                    ContinuousIntegrationBuild = !BuildSystem.IsLocalBuild,
-                },
-                NoBuild = true,
-                NoRestore = true,
-                OutputDirectory = artefactsDirectory,
-            });
-    });
+                    Configuration = configuration,
+                    IncludeSymbols = true,
+                    MSBuildSettings = new DotNetMSBuildSettings()
+                    {
+                        ContinuousIntegrationBuild = !BuildSystem.IsLocalBuild,
+                    },
+                    NoBuild = true,
+                    NoRestore = true,
+                    OutputDirectory = artefactsDirectory,
+                });
+        });
 
 Task("Default")
     .Description("Cleans, restores NuGet packages, builds the solution, runs unit tests and then creates NuGet packages.")

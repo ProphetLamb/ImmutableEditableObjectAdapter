@@ -22,6 +22,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Soulution Items", "Soulutio
 		dotnet-tools.json = dotnet-tools.json
 		global.json = global.json
 		README.md = README.md
+		.editorconfig = .editorconfig
+		.gitattributes = .gitattributes
+		.gitignore = .gitignore
+		icon.png = icon.png
+		LICENSE = LICENSE
 	EndProjectSection
 EndProject
 Global
