@@ -2,6 +2,7 @@
   "sdk": {
     "allowPrerelease": false,
     "rollForward": "latestMajor",
-    "version": "7.0.406"
+    "quality": "release",
+    "version": "9.0.5"
   }
 }
