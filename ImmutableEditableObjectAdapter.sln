@@ -18,7 +18,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Soulution Items", "Soulution Items", "{4D7E7EFE-E161-418E-A098-F56190217FA3}"
 	ProjectSection(SolutionItems) = preProject
 		build.cake = build.cake
-		Directory.Build.props = Directory.Build.props
 		dotnet-tools.json = dotnet-tools.json
 		global.json = global.json
 		README.md = README.md

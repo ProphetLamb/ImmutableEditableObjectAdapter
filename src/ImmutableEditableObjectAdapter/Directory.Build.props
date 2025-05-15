@@ -14,7 +14,22 @@
     <RestoreUseStaticGraphEvaluation>false</RestoreUseStaticGraphEvaluation>
   </PropertyGroup>
 
-  <PropertyGroup Label="Packager">
+  <PropertyGroup Label="Publisher">
+    <Company>Prophet Lamb</Company>
+    <ApplicationPublisher>$(Company)</ApplicationPublisher>
+    <Authors>Prophet Lamb</Authors>
+    <Copyright>Copyright © 2025 Prophet Lamb. All rights reserved.</Copyright>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/ProphetLamb/ImmutableEditableObjectAdapter.git</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/ProphetLamb/ImmutableEditableObjectAdapter</PackageProjectUrl>
+    <PackageReleaseNotes>https://github.com/ProphetLamb/ImmutableEditableObjectAdapter/releases</PackageReleaseNotes>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageLicenseFile Condition="$(PackageLicenseExpression) == ''">LICENSE</PackageLicenseFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>icon.png</PackageIcon>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Package">
     <DebugType>embedded</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <Deterministic Condition=" '$(Configuration)' == 'Release' ">true</Deterministic>
