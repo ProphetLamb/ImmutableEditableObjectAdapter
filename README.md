@@ -20,8 +20,8 @@ Generated `ImmutableEditableObjectAdapter` types mirrors the `public` Properties
 Each property, set to a different value than the property in the `Unedited` reference, is used to reconstruct `Unedited` into a new `record`:
 
 ```csharp
-Person edited = Unmodified with {
-  Name = NamePropertyChanged ? Name : Unmodified.Name,
+Person edited = Unedited with {
+  Name = NamePropertyChanged ? Name : Unedited.Name,
 }
 ```
 
