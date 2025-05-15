@@ -27,6 +27,7 @@
     <PackageLicenseFile Condition="$(PackageLicenseExpression) == ''">LICENSE</PackageLicenseFile>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageIcon>icon.png</PackageIcon>
+    <PackageTags>immutable adapter MVVM MVUX uno uwp winui datagrid source-generator</PackageTags>
   </PropertyGroup>
 
   <PropertyGroup Label="Package">
