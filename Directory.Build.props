@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <PropertyGroup Label="Publisher">
+    <PackageProjectUrl>https://github.com/ProphetLamb/ImmutableEditableObjectAdapter</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/ProphetLamb/ImmutableEditableObjectAdapter.git</RepositoryUrl>
+    <PackageReleaseNotes>https://github.com/ProphetLamb/ImmutableEditableObjectAdapter/releases</PackageReleaseNotes>
+    <Company>Prophet Lamb</Company>
+    <ApplicationPublisher>$(Company)</ApplicationPublisher>
+    <Authors>Prophet Lamb</Authors>
+    <Copyright>2025 © Prophet Lamb. All rights reserved.</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageLicenseFile Condition="$(PackageLicenseExpression) == ''">LICENSE</PackageLicenseFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>icon.png</PackageIcon>
+  </PropertyGroup>
+</Project>

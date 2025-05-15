@@ -14,20 +14,7 @@
     <RestoreUseStaticGraphEvaluation>false</RestoreUseStaticGraphEvaluation>
   </PropertyGroup>
 
-  <PropertyGroup Label="Package">
-    <PackageProjectUrl>https://github.com/ProphetLamb/ImmutableEditableObjectAdapter</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/ProphetLamb/ImmutableEditableObjectAdapter.git</RepositoryUrl>
-    <PackageReleaseNotes>https://github.com/ProphetLamb/ImmutableEditableObjectAdapter/releases</PackageReleaseNotes>
-    <Company>Prophet Lamb</Company>
-    <ApplicationPublisher>$(Company)</ApplicationPublisher>
-    <Authors>Prophet Lamb</Authors>
-    <Copyright>2025 © Prophet Lamb. All rights reserved.</Copyright>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageLicenseFile Condition="$(PackageLicenseExpression) == ''">LICENSE</PackageLicenseFile>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
-  </PropertyGroup>
-
-  <PropertyGroup Label="Packing">
+  <PropertyGroup Label="Packager">
     <DebugType>embedded</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <Deterministic Condition=" '$(Configuration)' == 'Release' ">true</Deterministic>
@@ -39,7 +26,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="$(MSBuildThisFileDirectory)../../README.md" Link="README.md" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../icon.png" Pack="true" PackagePath="/"/>
+    <None Include="../../README.md" Pack="true" PackagePath="/"/>
   </ItemGroup>
 
   <ItemGroup>

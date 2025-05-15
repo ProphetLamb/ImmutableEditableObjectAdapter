@@ -15,6 +15,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{6219F431
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImmutableEditableObjectAdapter.Tests", "tests\ImmutableEditableObjectAdapter.Tests\ImmutableEditableObjectAdapter.Tests.csproj", "{68E503CA-82FF-4DAA-ACA1-E31AAFE04D08}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Soulution Items", "Soulution Items", "{4D7E7EFE-E161-418E-A098-F56190217FA3}"
+	ProjectSection(SolutionItems) = preProject
+		build.cake = build.cake
+		Directory.Build.props = Directory.Build.props
+		dotnet-tools.json = dotnet-tools.json
+		global.json = global.json
+		README.md = README.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
