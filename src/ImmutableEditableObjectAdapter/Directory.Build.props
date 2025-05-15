@@ -1,61 +1,59 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project>
-    <PropertyGroup Label="Build">
-        <LangVersion>latest</LangVersion>
-        <Nullable>enable</Nullable>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <WarningsAsErrors>Nullable</WarningsAsErrors>
-        <NoWarn>CS1591</NoWarn>
-        <AnalysisLevel>latest</AnalysisLevel>
-        <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-        <GenerateDocumentationFile>true</GenerateDocumentationFile>
-        <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
-        <EnableDynamicPlatformResolution>true</EnableDynamicPlatformResolution>
-        <RestoreUseStaticGraphEvaluation>false</RestoreUseStaticGraphEvaluation>
-    </PropertyGroup>
-    
-    <PropertyGroup Label="Package">
-        <PackageProjectUrl>https://github.com/ProphetLamb/ImmutableEditableObjectAdapter</PackageProjectUrl>
-        <RepositoryUrl>https://github.com/ProphetLamb/ImmutableEditableObjectAdapter.git</RepositoryUrl>
-        <PackageReleaseNotes>https://github.com/ProphetLamb/ImmutableEditableObjectAdapter/releases</PackageReleaseNotes>
-        <ApplicationDisplayVersion>1.0.5</ApplicationDisplayVersion>
-        <Version>$(ApplicationDisplayVersion)</Version>
-        <AssemblyVersion>$(ApplicationDisplayVersion)</AssemblyVersion>
-        <Company>Prophet Lamb</Company>
-        <ApplicationPublisher>$(Company)</ApplicationPublisher>
-        <Authors>Prophet Lamb</Authors>
-        <Copyright>2025 © Prophet Lamb. All rights reserved.</Copyright>
-        <PackageLicenseExpression>MIT</PackageLicenseExpression>
-        <PackageLicenseFile Condition="$(PackageLicenseExpression) == ''">LICENSE</PackageLicenseFile>
-        <PackageReadmeFile>$(MSBuildThisFileDirectory)../../README.md</PackageReadmeFile>
-    </PropertyGroup>
-    
-    <PropertyGroup Label="Packing">
-        <DebugType>embedded</DebugType>
-        <DebugSymbols>true</DebugSymbols>
-        <NuGetPackageRoot Condition=" '$(Configuration)' == 'Release' ">$(MSBuildThisFileDirectory)</NuGetPackageRoot>
-        <ContinuousIntegrationBuild Condition=" '$(Configuration)' == 'Release' ">true</ContinuousIntegrationBuild>
-        <Deterministic Condition=" '$(Configuration)' == 'Release' ">true</Deterministic>
-        <GeneratePackageOnBuild Condition=" '$(Configuration)' == 'Release' ">true</GeneratePackageOnBuild>
-        <EmbedUntrackedSources>true</EmbedUntrackedSources>
-        <AllowedOutputExtensionsInPackageBuildOutputFolder>
-            $(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb;.xml
-        </AllowedOutputExtensionsInPackageBuildOutputFolder>
-        <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    </PropertyGroup>
+  <PropertyGroup Label="Build">
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <WarningsAsErrors>Nullable</WarningsAsErrors>
+    <NoWarn>CS1591</NoWarn>
+    <AnalysisLevel>latest</AnalysisLevel>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
+    <EnableDynamicPlatformResolution>true</EnableDynamicPlatformResolution>
+    <RestoreUseStaticGraphEvaluation>false</RestoreUseStaticGraphEvaluation>
+  </PropertyGroup>
 
-<!--    Not needed as source link is inplace -->
-<!--    <ItemGroup>-->
-<!--        <SourceRoot Include="$([MSBuild]::EnsureTrailingSlash($(NuGetPackageRoot)))" Condition="'$(NuGetPackageRoot)' != ''"/>-->
-<!--    </ItemGroup>-->
-    
-    <ItemGroup>
-        <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All"/>
-    </ItemGroup>
+  <PropertyGroup Label="Package">
+    <PackageProjectUrl>https://github.com/ProphetLamb/ImmutableEditableObjectAdapter</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/ProphetLamb/ImmutableEditableObjectAdapter.git</RepositoryUrl>
+    <PackageReleaseNotes>https://github.com/ProphetLamb/ImmutableEditableObjectAdapter/releases</PackageReleaseNotes>
+    <Company>Prophet Lamb</Company>
+    <ApplicationPublisher>$(Company)</ApplicationPublisher>
+    <Authors>Prophet Lamb</Authors>
+    <Copyright>2025 © Prophet Lamb. All rights reserved.</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageLicenseFile Condition="$(PackageLicenseExpression) == ''">LICENSE</PackageLicenseFile>
+    <PackageReadmeFile>$(MSBuildThisFileDirectory)../../README.md</PackageReadmeFile>
+  </PropertyGroup>
 
-    <ItemDefinitionGroup>
-        <!-- We always want MSBuild properties generated that point at the restored location of each package. -->
-        <PackageReference GeneratePathProperty="true"/>
-    </ItemDefinitionGroup>
+  <PropertyGroup Label="Packing">
+    <DebugType>embedded</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <NuGetPackageRoot Condition=" '$(Configuration)' == 'Release' ">$(MSBuildThisFileDirectory)</NuGetPackageRoot>
+    <ContinuousIntegrationBuild Condition=" '$(Configuration)' == 'Release' ">true</ContinuousIntegrationBuild>
+    <Deterministic Condition=" '$(Configuration)' == 'Release' ">true</Deterministic>
+    <GeneratePackageOnBuild Condition=" '$(Configuration)' == 'Release' ">true</GeneratePackageOnBuild>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <AllowedOutputExtensionsInPackageBuildOutputFolder>
+      $(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb;.xml
+    </AllowedOutputExtensionsInPackageBuildOutputFolder>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+  </PropertyGroup>
+
+  <!--    Not needed as source link is inplace -->
+  <!--    <ItemGroup>-->
+  <!--        <SourceRoot Include="$([MSBuild]::EnsureTrailingSlash($(NuGetPackageRoot)))" Condition="'$(NuGetPackageRoot)' != ''"/>-->
+  <!--    </ItemGroup>-->
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All"/>
+    <PackageReference Include="MinVer" PrivateAssets="all" Version="4.3.0"/>
+  </ItemGroup>
+
+  <ItemDefinitionGroup>
+    <!-- We always want MSBuild properties generated that point at the restored location of each package. -->
+    <PackageReference GeneratePathProperty="true"/>
+  </ItemDefinitionGroup>
 
 </Project>
