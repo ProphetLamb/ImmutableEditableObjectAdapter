@@ -19,7 +19,7 @@ Task("Restore")
     .IsDependentOn("Clean")
     .Does(() =>
     {
-        DotNetRestore();
+        DotNetRestore(".");
     });
 
 Task("Build")
@@ -32,7 +32,7 @@ Task("Build")
             new DotNetBuildSettings()
             {
                 Configuration = configuration,
-                //NoRestore = true,
+                NoRestore = true,
             });
     });
 
@@ -54,8 +54,8 @@ Task("Test")
                         $"trx;LogFileName={project.GetFilenameWithoutExtension()}.trx",
                         $"html;LogFileName={project.GetFilenameWithoutExtension()}.html",
                     },
-                    //NoBuild = true,
-                    //NoRestore = true,
+                    NoBuild = true,
+                    NoRestore = true,
                     ResultsDirectory = artefactsDirectory,
                 });
         });
