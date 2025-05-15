@@ -30,7 +30,7 @@ namespace ImmutableEditableObjectAdapter.Tests.TestAssembly
 }
 ");
         const int TEST_SOURCES_LEN = 1;
-        const int GEN_SOURCES_LEN = 5; // Attribute + Dummy + NoAttr + NoFlags + PreferThisEnum
+        const int GEN_SOURCES_LEN = 2; // ImmutableEditableObjectAdapter + partial EditablePerson
         ImmutableEditableObjectAdapterGenerator generator = new();
 
         GeneratorDriver driver = CSharpGeneratorDriver.Create(generator);
@@ -73,8 +73,6 @@ namespace ImmutableEditableObjectAdapter.Tests.TestAssembly
                 MetadataReference.CreateFromFile(typeof(global::System.Runtime.InteropServices.StructLayoutAttribute)
                     .GetTypeInfo()
                     .Assembly.Location),
-                MetadataReference.CreateFromFile(
-                    @"C:\Program Files (x86)\dotnet\shared\Microsoft.NETCore.App\9.0.3\System.Runtime.dll"),
                 MetadataReference.CreateFromFile(typeof(global::System.HashCode).GetTypeInfo().Assembly.Location)
             ],
             new CSharpCompilationOptions(OutputKind.ConsoleApplication));
