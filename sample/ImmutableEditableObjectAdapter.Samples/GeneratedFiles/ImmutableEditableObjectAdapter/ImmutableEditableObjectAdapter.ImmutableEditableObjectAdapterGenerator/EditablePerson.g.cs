@@ -4,7 +4,7 @@ using global::System;
 using global::System.ComponentModel;
 
 [global::System.Diagnostics.DebuggerDisplayAttribute("{DebuggerDisplay(),nq}")]
-sealed partial class EditablePerson
+internal sealed partial class EditablePerson
 {
     [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
     [global::System.Diagnostics.DebuggerBrowsable(global::System.Diagnostics.DebuggerBrowsableState.Never)]

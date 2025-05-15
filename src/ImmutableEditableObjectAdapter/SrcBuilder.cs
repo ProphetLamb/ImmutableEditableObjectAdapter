@@ -743,12 +743,12 @@ public class SrcBuilder
 
         /// <inheritdoc />
         [Obsolete("Used to allow for a collection initializer. Not implemented!", true)]
-        public IEnumerator<string> GetEnumerator()
+        public readonly IEnumerator<string> GetEnumerator()
         {
             yield break; // Dummy implementation
         }
 
-        IEnumerator IEnumerable.GetEnumerator()
+        readonly IEnumerator IEnumerable.GetEnumerator()
         {
             yield break; // Dummy implementation
         }

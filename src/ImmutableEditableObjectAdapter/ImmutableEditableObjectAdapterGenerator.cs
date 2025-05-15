@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+﻿using System.Globalization;
 using System.Text;
 
 namespace ImmutableEditableObjectAdapter;
@@ -59,12 +59,12 @@ public class ImmutableEditableObjectAdapterGenerator : IIncrementalGenerator
 
                 /// <inheritdoc />
                 public event PropertyChangingEventHandler? PropertyChanging;
-                
+
                 /// <summary>
                 /// Occurs before <see cref="EndEdit"/> replaces the immutable state <c>record</c>.
                 /// </summary>
                 public event EditedEventHandler<TContract>? Edited;
-                
+
                 /// <inheritdoc />
                 public abstract void BeginEdit();
 
@@ -73,12 +73,12 @@ public class ImmutableEditableObjectAdapterGenerator : IIncrementalGenerator
 
                 /// <inheritdoc />
                 public abstract void EndEdit();
-                
+
                 /// <summary>
                 /// Enumerate names of all changed properties during edit, and <see cref="Edited"/>.
                 /// </summary>
                 public abstract IEnumerable<string> ChangedProperties();
-                
+
                 /// <summary>
                 /// Indicates whether the property with the name name has changed during edit, and <see cref="Edited"/>.
                 /// </summary>
@@ -459,7 +459,7 @@ public class ImmutableEditableObjectAdapterGenerator : IIncrementalGenerator
             Name = context.Name,
             TypeName = GlobalQualifiedTypeName(context.Type),
             Nullable = context.NullableAnnotation == NullableAnnotation.Annotated ? "?" : "",
-            Modifiers = context.DeclaredAccessibility.ToString().Replace("|", "").ToLower()
+            Modifiers = context.DeclaredAccessibility.ToString().Replace("|", "").ToLower(CultureInfo.InvariantCulture)
         };
     }
 }

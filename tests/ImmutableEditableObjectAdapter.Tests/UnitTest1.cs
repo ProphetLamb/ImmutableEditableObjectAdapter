@@ -17,7 +17,7 @@ namespace ImmutableEditableObjectAdapter.Tests.TestAssembly
     using System.ComponentModel;
 
     public record Person(string Name, DateTimeOffset BirthDay);
-    
+
     public sealed partial class EditablePerson : ImmutableEditableObjectAdapter<Person>;
 
     public static class Program
@@ -55,7 +55,7 @@ namespace ImmutableEditableObjectAdapter.Tests.TestAssembly
     }
 
 
-    private static Compilation CreateCompilation(string source)
+    private static CSharpCompilation CreateCompilation(string source)
         => CSharpCompilation.Create("compilation",
             [CSharpSyntaxTree.ParseText(source)],
             [

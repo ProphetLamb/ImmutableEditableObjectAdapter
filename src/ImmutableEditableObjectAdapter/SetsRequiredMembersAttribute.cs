@@ -1,6 +1,4 @@
-﻿using System.ComponentModel;
-
-#pragma warning disable IDE0130
+﻿#pragma warning disable IDE0130
 // ReSharper disable once CheckNamespace
 namespace System.Diagnostics.CodeAnalysis;
 #pragma warning restore IDE0130

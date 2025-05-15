@@ -1,6 +1,7 @@
 ﻿namespace ImmutableEditableObjectAdapter;
 
-public static class SyntaxExtensions {
+public static class SyntaxExtensions
+{
     /// <summary>Attempts to find the a attribute attached to a <see cref="MemberDeclarationSyntax"/> node.</summary>
     /// <param name="member">The member declaration.</param>
     /// <param name="predicate">The function determining whether an attribute matches, or not.</param>
@@ -8,11 +9,16 @@ public static class SyntaxExtensions {
     /// <returns>The first <see cref="AttributeSyntax"/> found, if any.</returns>
     public static AttributeSyntax? FindMemAttr<M>(
         in this SynModel<M> member,
-        Func<SynModel<M>, AttributeSyntax, bool> predicate)
-        where M : MemberDeclarationSyntax {
-        foreach (var attrListSyntax in member.Node.AttributeLists) {
-            foreach (var attrSyntax in attrListSyntax.Attributes) {
-                if (predicate(member, attrSyntax)) {
+        Func<SynModel<M>, AttributeSyntax, bool> predicate
+    )
+        where M : MemberDeclarationSyntax
+    {
+        foreach (var attrListSyntax in member.Node.AttributeLists)
+        {
+            foreach (var attrSyntax in attrListSyntax.Attributes)
+            {
+                if (predicate(member, attrSyntax))
+                {
                     return attrSyntax;
                 }
             }
@@ -28,11 +34,16 @@ public static class SyntaxExtensions {
     /// <returns>The first <see cref="AttributeSyntax"/> found, if any.</returns>
     public static AttributeSyntax? FindTypeAttr<T>(
         in this SynModel<T> type,
-        Func<SynModel<T>, AttributeSyntax, bool> predicate)
-        where T : BaseTypeDeclarationSyntax {
-        foreach (var attrListSyntax in type.Node.AttributeLists) {
-            foreach (var attrSyntax in attrListSyntax.Attributes) {
-                if (predicate(type, attrSyntax)) {
+        Func<SynModel<T>, AttributeSyntax, bool> predicate
+    )
+        where T : BaseTypeDeclarationSyntax
+    {
+        foreach (var attrListSyntax in type.Node.AttributeLists)
+        {
+            foreach (var attrSyntax in attrListSyntax.Attributes)
+            {
+                if (predicate(type, attrSyntax))
+                {
                     return attrSyntax;
                 }
             }
@@ -46,18 +57,21 @@ public static class SyntaxExtensions {
     /// <typeparam name="P">The type of parents allowed in the trace. Throws if the type of any parent doesnt match.</typeparam>
     /// <exception cref="InvalidOperationException">The type of a node is not assignable to <typeparamref name="P"/>.</exception>
     public static (NamespaceDeclarationSyntax, ImmutableArray<P>) GetHierarchy<P>(this CSharpSyntaxNode node)
-        where P : MemberDeclarationSyntax {
+        where P : MemberDeclarationSyntax
+    {
         var nesting = ImmutableArray.CreateBuilder<P>(16);
         SyntaxNode? p = node;
-        while ((p = p?.Parent) is not null) {
-            switch (p) {
-            case P member:
-                nesting.Add(member);
-                break;
-            case NamespaceDeclarationSyntax ns:
-                return (ns, nesting.ToImmutable());
-            default:
-                throw new InvalidOperationException($"{p.GetType().Name} is not allowed in the hierarchy.");
+        while ((p = p?.Parent) is not null)
+        {
+            switch (p)
+            {
+                case P member:
+                    nesting.Add(member);
+                    break;
+                case NamespaceDeclarationSyntax ns:
+                    return (ns, nesting.ToImmutable());
+                default:
+                    throw new InvalidOperationException($"{p.GetType().Name} is not allowed in the hierarchy.");
             }
         }
 
@@ -67,16 +81,19 @@ public static class SyntaxExtensions {
     /// <summary>Returns the type name of the node inside the model.</summary>
     /// <param name="model">The model</param>
     /// <param name="node">The node in the scope of the model.</param>
-    public static string? GetTypeName(this SemanticModel model, SyntaxNode node) {
+    public static string? GetTypeName(this SemanticModel model, SyntaxNode node)
+    {
         // Are we a type?
         var typeInfo = model.GetTypeInfo(node);
-        if (typeInfo.Type is not null) {
+        if (typeInfo.Type is not null)
+        {
             return typeInfo.Type.ToDisplayString();
         }
 
         var decl = model.GetDeclaredSymbol(node);
         // Are we of a type?
-        if (decl?.ContainingType is not null) {
+        if (decl?.ContainingType is not null)
+        {
             return decl.ContainingType.ToDisplayString();
         }
 
@@ -93,26 +110,35 @@ public static class SyntaxExtensions {
     public static IEnumerable<T> CollectSyntax<T>(
         this Compilation comp,
         Func<SyntaxNode, CancellationToken, bool> predicate,
-        Func<Compilation, SyntaxNode, CancellationToken, T> transform) {
-        foreach (var tree in comp.SyntaxTrees) {
+        Func<Compilation, SyntaxNode, CancellationToken, T> transform
+    )
+    {
+        foreach (var tree in comp.SyntaxTrees)
+        {
             CancellationToken ct = new();
-            if (tree.TryGetRoot(out var root)) {
+            if (tree.TryGetRoot(out var root))
+            {
                 Stack<SyntaxNode> stack = new(64);
                 stack.Push(root);
 
                 SyntaxNode node;
-                while ((node = stack.Pop()) is not null) {
-                    foreach (var child in node.ChildNodesAndTokens()) {
-                        if (child.IsNode) {
-                            stack.Push((SyntaxNode) child!);
+                while ((node = stack.Pop()) is not null)
+                {
+                    foreach (var child in node.ChildNodesAndTokens())
+                    {
+                        if (child.IsNode)
+                        {
+                            stack.Push((SyntaxNode)child!);
                         }
                     }
 
-                    if (predicate(node, ct)) {
+                    if (predicate(node, ct))
+                    {
                         yield return transform(comp, node, ct);
                     }
 
-                    if (ct.IsCancellationRequested) {
+                    if (ct.IsCancellationRequested)
+                    {
                         break;
                     }
                 }
