@@ -24,6 +24,8 @@ internal sealed record Person(string Name, string FavouriteColor, DateTimeOffset
 internal sealed partial class EditablePerson : ImmutableEditableObjectAdapter<Person>;
 ```
 
+Feel free to review the [generated code](https://github.com/ProphetLamb/ImmutableEditableObjectAdapter/blob/main/sample/ImmutableEditableObjectAdapter.Samples/GeneratedFiles/ImmutableEditableObjectAdapter/ImmutableEditableObjectAdapter.ImmutableEditableObjectAdapterGenerator/EditablePerson.g.cs#L7) for this example.
+
 Generated `ImmutableEditableObjectAdapter` types mirrors the `public` Properties of the `record` passed as a generic type parameter. However, all properties have setter.
 Each property, set to a different value than the property in the `Unedited` reference, is used to reconstruct `Unedited` into a new `record`:
 
