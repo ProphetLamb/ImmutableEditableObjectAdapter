@@ -1,3 +1,4 @@
+root = true
 # Version: 4.0.0 (Using https://semver.org/)
 # Updated: 2021-10-12
 # See https://github.com/RehanSaeed/EditorConfig/releases for release notes.
@@ -9,7 +10,6 @@
 ##########################################
 
 # This file is the top-most EditorConfig file
-root = true
 
 # All Files
 [*]
@@ -267,6 +267,10 @@ csharp_wrap_after_declaration_lpar = true
 csharp_wrap_before_declaration_rpar = true
 csharp_place_constructor_initializer_on_same_line = false
 # Arrangement of expression bodied members
+csharp_preserve_single_line_blocks = true
+resharper_keep_existing_declaration_block_arrangement = true
+resharper_keep_existing_embedded_block_arrangement = true
+resharper_keep_existing_expr_member_arrangement = true
 csharp_place_expr_method_on_single_line = if_owner_is_single_line
 csharp_place_expr_property_on_single_line = if_owner_is_single_line
 csharp_place_expr_accessor_on_single_line = if_owner_is_single_line
@@ -481,38 +485,38 @@ dotnet_naming_rule.parameters_rule.severity = warning
 # SA0001: XML comment analysis is disabled due to project configuration
 # Justification: Comments turned off
 # https://github.com/DotNetAnalyzers/StyleCopAnalyzers/blob/master/documentation/SA0001.md
-dotnet_diagnostic.SA0001.severity = none
+dotnet_diagnostic.sa0001.severity = none
 
 # SA1600: Elements should be documented.
 # Justification: Comments turned off
 # https://github.com/DotNetAnalyzers/StyleCopAnalyzers/blob/master/documentation/SA1600.md
-dotnet_diagnostic.SA1600.severity = none
+dotnet_diagnostic.sa1600.severity = none
 
 #endif
 # SA1633: A C# code file is missing a standard file header.
 # Justification: Comments turned off
 # https://github.com/DotNetAnalyzers/StyleCopAnalyzers/blob/master/documentation/SA1633.md
-dotnet_diagnostic.SA1633.severity = none
+dotnet_diagnostic.sa1633.severity = none
 
 # SA1649: The file name of a C# code file does not match the first type declared in the file.
 # Justifcation: Multiple classes per file
 # https://github.com/DotNetAnalyzers/StyleCopAnalyzers/blob/master/documentation/SA1649.md
-dotnet_diagnostic.SA1649.severity = none
+dotnet_diagnostic.sa1649.severity = none
 
 # SA1649: A C# code file contains more than one unique type.
 # Justifcation: Multiple classes per file
 # https://github.com/DotNetAnalyzers/StyleCopAnalyzers/blob/master/documentation/SA1402.md
-dotnet_diagnostic.SA1402.severity = none
+dotnet_diagnostic.sa1402.severity = none
 
 # SA1101: A call to an instance member of the local class or a base class is not prefixed with 'this.', within a C# code file.
 # Justifcation: Use semantic naming for locals
 # https://github.com/DotNetAnalyzers/StyleCopAnalyzers/blob/master/documentation/SA1101.md
-dotnet_diagnostic.SA1101.severity = none
+dotnet_diagnostic.sa1101.severity = none
 
 #endif
 
 #if (!Comments)
-dotnet_diagnostic.CS1591.severity = none
+dotnet_diagnostic.cs1591.severity = none
 #endif
 ##########################################
 # License
