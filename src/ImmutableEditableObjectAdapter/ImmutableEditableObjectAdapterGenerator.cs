@@ -139,16 +139,16 @@ public class ImmutableEditableObjectAdapterGenerator : IIncrementalGenerator
             SrcBuilder source = new(2048);
             using (source.NullableEnable())
             {
-                var ns = string.IsNullOrEmpty(o.Namespace)
+                var ns = string.IsNullOrEmpty(o.Declaration.Namespace)
                     ? default(SrcBuilder.SrcBlock?)
-                    : source.Decl($"namespace {o.Namespace}");
+                    : source.Decl($"namespace {o.Declaration.Namespace}");
 
                 source.Stmt("using global::System;")
                     .Stmt("using global::System.ComponentModel;")
                     .NL();
 
                 source.Stmt("[global::System.Diagnostics.DebuggerDisplayAttribute(\"{DebuggerDisplay(),nq}\")]");
-                using (source.Decl($"{o.Modifiers} class {o.Name}"))
+                using (source.Decl($"{o.Declaration.Modifiers} class {o.Declaration.Name}"))
                 {
                     source.Stmt(
                         "[global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]");
@@ -165,7 +165,7 @@ public class ImmutableEditableObjectAdapterGenerator : IIncrementalGenerator
                     }
 
                     using (source.Decl(
-                        $"public {o.Name}({o.ContractTypeName} originalValue)"))
+                        $"public {o.Declaration.Name}({o.ContractTypeName} originalValue)"))
                     {
                         source.Stmt("_unedited = originalValue;");
                     }
@@ -189,7 +189,7 @@ public class ImmutableEditableObjectAdapterGenerator : IIncrementalGenerator
                                     $"if (is{p.Name}Changed) OnPropertyChanging(nameof({p.Name}));");
                             }
 
-                            source.Stmt("if (!SetField(ref _unedited, value)) return;");
+                            source.Stmt("SetField(ref _unedited, value);");
                             foreach (var p in o.Properties)
                             {
                                 source.Stmt(
@@ -205,8 +205,8 @@ public class ImmutableEditableObjectAdapterGenerator : IIncrementalGenerator
                         source.Stmt(
                             "[global::System.Diagnostics.DebuggerBrowsable(global::System.Diagnostics.DebuggerBrowsableState.Never)]");
                         source.Stmt(
-                            $"private {p.TypeName}{p.Nullable} _changed{p.Name} = default({p.TypeName}{p.Nullable})!;"
-                        );
+                            $"private {p.TypeName} _changed{p.Name} = default({p.TypeName})!;"
+                        ).NL();
 
                         using (source.Decl($"public bool {p.Name}PropertyChanged"))
                         {
@@ -233,7 +233,7 @@ public class ImmutableEditableObjectAdapterGenerator : IIncrementalGenerator
                         }
 
                         source.DocLine("inheritdoc", $"cref=\"{o.ContractTypeName}.{p.Name}\"");
-                        using (source.Decl($"{p.Modifiers} {p.TypeName}{p.Nullable} {p.Name}"))
+                        using (source.Decl($"{p.Modifiers} {p.TypeName} {p.Name}"))
                         {
                             source.Stmt($"get => {p.Name}PropertyChanged ? _changed{p.Name} : Unedited.{p.Name};");
                             using (source.Decl("set"))
@@ -260,7 +260,7 @@ public class ImmutableEditableObjectAdapterGenerator : IIncrementalGenerator
                                 .Stmt($"bool is{p.Name}Changed = {p.Name}PropertyChanged;")
                                 .Stmt($"{p.Name}PropertyChanged = false;")
                                 .Stmt($"if (is{p.Name}Changed) OnPropertyChanging(nameof({p.Name}));")
-                                .Stmt($"_changed{p.Name} = default({p.TypeName}{p.Nullable})!;")
+                                .Stmt($"_changed{p.Name} = default({p.TypeName})!;")
                                 .Stmt($"if (is{p.Name}Changed) OnPropertyChanged(nameof({p.Name}));");
                         }
                     }
@@ -269,7 +269,7 @@ public class ImmutableEditableObjectAdapterGenerator : IIncrementalGenerator
                     {
                         source.Stmt("ThrowIfNotEditing();");
                         source.Stmt($"{o.ContractTypeName} unedited = _unedited;");
-                        source.AppendIndent($"{o.ContractTypeName} edited = unedited with {{").Indent();
+                        source.AppendIndent($"{o.ContractTypeName} edited = unedited with {{").Indent().NL();
                         foreach (var p in o.Properties)
                         {
                             source.Stmt(
@@ -332,7 +332,7 @@ public class ImmutableEditableObjectAdapterGenerator : IIncrementalGenerator
                         using (source.If("IsEditing()"))
                         {
                             source.Stmt(
-                                $"throw new global::System.InvalidOperationException(\"{o.Name} is being edited. Cannot begin edit again, or modify 'Unmodified' before EndEdit(), or CancelEdit() is called.\");");
+                                $"throw new global::System.InvalidOperationException(\"{o.Declaration.Name} is being edited. Cannot begin edit again, or modify 'Unmodified' before EndEdit(), or CancelEdit() is called.\");");
                         }
                     }
 
@@ -341,14 +341,14 @@ public class ImmutableEditableObjectAdapterGenerator : IIncrementalGenerator
                         using (source.If("!IsEditing()"))
                         {
                             source.Stmt(
-                                $"throw new global::System.InvalidOperationException(\"{o.Name} is not being edited. Cannot edit properties, besides 'Unmodified', before BeginEdit() is called.\");");
+                                $"throw new global::System.InvalidOperationException(\"{o.Declaration.Name} is not being edited. Cannot edit properties, besides 'Unmodified', before BeginEdit() is called.\");");
                         }
                     }
 
                     using (source.Decl("internal string DebuggerDisplay()"))
                     {
                         source.Stmt("global::System.Text.StringBuilder sb = new global::System.Text.StringBuilder();");
-                        source.Stmt($"sb.Append(\"{o.Name} {{ \");");
+                        source.Stmt($"sb.Append(\"{o.Declaration.Name} {{ \");");
 
                         foreach (var p in o.Properties)
                         {
@@ -372,23 +372,23 @@ public class ImmutableEditableObjectAdapterGenerator : IIncrementalGenerator
                 }
             }
 
-            context.AddSource($"{o.Name}.g.cs", SourceText.From(source.ToString(), Encoding.UTF8));
+            context.AddSource($"{o.Declaration.Name}.g.cs", SourceText.From(source.ToString(), Encoding.UTF8));
         }
     }
 
-    private static EditableAdapterObject? CollectAdapterObjectInformation(SynModel context, CancellationToken ct)
+    private static EditableAdapterObject? CollectAdapterObjectInformation(GeneratorSyntaxContext context, CancellationToken ct)
     {
-        if (!context.Is<ClassDeclarationSyntax>(out var declaration))
+        if (context.Node is not ClassDeclarationSyntax declarationSyntax)
         {
             return null;
         }
 
-        if (declaration.GetDeclaredSymbol(ct) is not INamedTypeSymbol declaredType)
+        if (context.SemanticModel.GetDeclaredSymbol(declarationSyntax, ct) is not { } declarationSymbol)
         {
             return null;
         }
 
-        var baseType = declaredType.BaseType;
+        var baseType = declarationSymbol.BaseType;
         while (baseType is not null)
         {
             if (baseType.MetadataName.Equals(EditableObjectAdapterMetadataName, StringComparison.Ordinal))
@@ -404,12 +404,11 @@ public class ImmutableEditableObjectAdapterGenerator : IIncrementalGenerator
             return null;
         }
 
-        if (declaredType.IsAbstract)
+        if (declarationSymbol.IsAbstract)
         {
             return null;
         }
 
-        var modifiers = string.Join(" ", declaration.Node.Modifiers.Select(m => m.Text));
         var contractTypeInfo = baseType.TypeArguments[0];
         var contractTypeProperties = contractTypeInfo.GetMembers()
             .OfType<IPropertySymbol>()
@@ -418,18 +417,26 @@ public class ImmutableEditableObjectAdapterGenerator : IIncrementalGenerator
             .ToImmutableArray();
         return new()
         {
-            Name = declaredType.Name,
-            Modifiers = modifiers,
-            Namespace = FullNamespace(contractTypeInfo.ContainingNamespace),
+            Declaration = GetDeclaration(declarationSymbol, declarationSyntax),
             ContractTypeName = GlobalQualifiedTypeName(contractTypeInfo),
             Properties = contractTypeProperties!
         };
     }
 
+    private static TypeDeclaration GetDeclaration(ITypeSymbol typeSymbol, ClassDeclarationSyntax typeSyntax)
+    {
+        return new()
+        {
+            Name = typeSymbol.Name,
+            QualifiedName = GlobalQualifiedTypeName(typeSymbol),
+            Namespace = typeSymbol.ContainingNamespace.IsGlobalNamespace ? null : FullNamespace(typeSymbol.ContainingNamespace),
+            Modifiers = string.Join(" ", typeSyntax.Modifiers.Select(m => m.Text))
+        };
+    }
+
     private static string GlobalQualifiedTypeName(ITypeSymbol type)
     {
-        var ns = FullNamespace(type.ContainingNamespace);
-        return string.IsNullOrEmpty(ns) ? type.Name : $"global::{ns}.{type.Name}";
+        return type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
     }
 
     private static string FullNamespace(INamespaceSymbol ns)
@@ -458,17 +465,25 @@ public class ImmutableEditableObjectAdapterGenerator : IIncrementalGenerator
         {
             Name = context.Name,
             TypeName = GlobalQualifiedTypeName(context.Type),
-            Nullable = context.NullableAnnotation == NullableAnnotation.Annotated ? "?" : "",
             Modifiers = context.DeclaredAccessibility.ToString().Replace("|", "").ToLower(CultureInfo.InvariantCulture)
         };
     }
 }
 
-public sealed record EditableAdapterObject
+public sealed record TypeDeclaration
 {
     public required string Modifiers { get; init; }
+
+    public required string QualifiedName { get; init; }
+
     public required string Name { get; init; }
+
     public required string? Namespace { get; init; }
+}
+
+public sealed record EditableAdapterObject
+{
+    public required TypeDeclaration Declaration { get; init; }
     public required ImmutableArray<EditableAdapterProperty> Properties { get; init; }
     public required string ContractTypeName { get; init; }
 }
@@ -478,5 +493,4 @@ public sealed record EditableAdapterProperty
     public required string Name { get; init; }
     public required string TypeName { get; init; }
     public required string Modifiers { get; init; }
-    public required string Nullable { get; init; }
 }
