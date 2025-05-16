@@ -17,22 +17,21 @@ public class ImmutableEditableObjectAdapterGenerator : IIncrementalGenerator
             using global::System.Runtime.CompilerServices;
 
             /// <summary>
-            /// Provides the old, and new value of the <see cref="EditedEventHandler{TContract}"/>.
+            /// Provides the old, and new value of the <see cref="EditedEventHandler{TContract}"/>, and indicates whether the value has changed.
             /// </summary>
             /// <typeparam name="TContract">The type of the contract <c>record</c>.</typeparam>
             public sealed class EditedEventArgs<TContract> : EventArgs
             {
-                public EditedEventArgs(
-                    TContract oldValue,
-                    TContract newValue
-                )
+                public EditedEventArgs(TContract oldValue, TContract newValue, bool cancelledOrUnchanged)
                 {
                     OldValue = oldValue;
                     NewValue = newValue;
+                    CancelledOrUnchanged = cancelledOrUnchanged;
                 }
 
                 public TContract OldValue { get; }
                 public TContract NewValue { get; }
+                public bool CancelledOrUnchanged { get; }
             }
 
             /// <summary>
@@ -42,7 +41,19 @@ public class ImmutableEditableObjectAdapterGenerator : IIncrementalGenerator
             public delegate void EditedEventHandler<TContract>(
                 ImmutableEditableObjectAdapter<TContract> sender,
                 EditedEventArgs<TContract> args
-            ) where TContract : notnull;
+            )
+                where TContract : notnull;
+
+            /// <summary>
+            /// Non-generic interface implemented by <see cref="ImmutableEditableObjectAdapter{TContract}"/>.
+            /// </summary>
+            public interface IImmutableEditableObjectAdapter : IEditableObject, INotifyPropertyChanged, INotifyPropertyChanging
+            {
+                /// <summary>
+                /// Occurs before <see cref="IEditableObject.EndEdit"/> replaces the immutable state <c>record</c>, or <see cref="IEditableObject.CancelEdit"/> discards changes.
+                /// </summary>
+                event EventHandler? Edited;
+            }
 
             /// <summary>
             /// Derive a <c>sealed partial class</c> to generate a <see cref="IEditableObject"/> from a immutable state <c>record</c> type.
@@ -50,10 +61,11 @@ public class ImmutableEditableObjectAdapterGenerator : IIncrementalGenerator
             /// Update the immutable state when the <see cref="Edited"/> event indicates the state is replaced.
             /// </summary>
             /// <typeparam name="TContract">The type of the contract <c>record</c>.</typeparam>
-            public abstract class ImmutableEditableObjectAdapter<TContract>
-                : IEditableObject, INotifyPropertyChanged, INotifyPropertyChanging
+            public abstract class ImmutableEditableObjectAdapter<TContract> : IImmutableEditableObjectAdapter
                 where TContract : notnull
             {
+                private ConditionalWeakTable<Delegate, Delegate>? _editedByGenericEdited;
+
                 /// <inheritdoc />
                 public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -61,9 +73,41 @@ public class ImmutableEditableObjectAdapterGenerator : IIncrementalGenerator
                 public event PropertyChangingEventHandler? PropertyChanging;
 
                 /// <summary>
-                /// Occurs before <see cref="EndEdit"/> replaces the immutable state <c>record</c>.
+                /// Occurs before <see cref="EndEdit"/> replaces the immutable state <c>record</c>, or <see cref="CancelEdit"/> discards changes.
                 /// </summary>
                 public event EditedEventHandler<TContract>? Edited;
+
+                /// <inheritdoc />
+                event EventHandler? IImmutableEditableObjectAdapter.Edited
+                {
+                    add
+                    {
+                        if (value is null)
+                        {
+                            return;
+                        }
+
+                        _editedByGenericEdited ??= new ConditionalWeakTable<Delegate, Delegate>();
+                        if (!_editedByGenericEdited.TryGetValue(value, out var edited))
+                        {
+                            edited = (EditedEventHandler<TContract>)value.Invoke;
+                            _editedByGenericEdited.Add(value, edited);
+                        }
+
+                        Edited += (EditedEventHandler<TContract>)edited;
+                    }
+                    remove
+                    {
+                        if (value is not null
+                            && _editedByGenericEdited is not null
+                            && _editedByGenericEdited.TryGetValue(value, out var edited)
+                            && _editedByGenericEdited.Remove(value)
+                        )
+                        {
+                            Edited -= (EditedEventHandler<TContract>)edited;
+                        }
+                    }
+                }
 
                 /// <inheritdoc />
                 public abstract void BeginEdit();
@@ -75,12 +119,12 @@ public class ImmutableEditableObjectAdapterGenerator : IIncrementalGenerator
                 public abstract void EndEdit();
 
                 /// <summary>
-                /// Enumerate names of all changed properties during edit, and <see cref="Edited"/>.
+                /// Enumerate names of all changed properties during edit.
                 /// </summary>
                 public abstract IEnumerable<string> ChangedProperties();
 
                 /// <summary>
-                /// Indicates whether the property with the name name has changed during edit, and <see cref="Edited"/>.
+                /// Indicates whether the property with the name name has changed during edit.
                 /// </summary>
                 public abstract bool IsPropertyChanged(string propertyName);
 
@@ -94,14 +138,17 @@ public class ImmutableEditableObjectAdapterGenerator : IIncrementalGenerator
                     PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
                 }
 
-                protected virtual void OnEdited(TContract oldValue, TContract newValue)
+                protected virtual void OnEdited(TContract oldValue, TContract newValue, bool cancelledOrUnchanged)
                 {
-                    Edited?.Invoke(this, new EditedEventArgs<TContract>(oldValue, newValue));
+                    Edited?.Invoke(this, new EditedEventArgs<TContract>(oldValue, newValue, cancelledOrUnchanged));
                 }
 
                 protected bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
                 {
-                    if (EqualityComparer<T>.Default.Equals(field, value)) return false;
+                    if (EqualityComparer<T>.Default.Equals(field, value))
+                    {
+                        return false;
+                    }
                     OnPropertyChanging(propertyName);
                     field = value;
                     OnPropertyChanged(propertyName);
@@ -252,23 +299,30 @@ public class ImmutableEditableObjectAdapterGenerator : IIncrementalGenerator
 
                     using (source.Decl("public override void CancelEdit()"))
                     {
-                        source.Stmt("ThrowIfNotEditing();");
-                        source.Stmt("SetEditing(false);");
-                        foreach (var p in o.Properties)
-                        {
-                            source
-                                .Stmt($"bool is{p.Name}Changed = {p.Name}PropertyChanged;")
-                                .Stmt($"{p.Name}PropertyChanged = false;")
-                                .Stmt($"if (is{p.Name}Changed) OnPropertyChanging(nameof({p.Name}));")
-                                .Stmt($"_changed{p.Name} = default({p.TypeName})!;")
-                                .Stmt($"if (is{p.Name}Changed) OnPropertyChanged(nameof({p.Name}));");
-                        }
+                        source
+                            .Stmt("ThrowIfNotEditing();")
+                            .Stmt("SetEditing(false);")
+                            .Stmt("OnEdited(Unedited, Unedited, true);")
+                            .Stmt("DiscardChanges();");
                     }
 
                     using (source.Decl("public override void EndEdit()"))
                     {
                         source.Stmt("ThrowIfNotEditing();");
+                        source.Stmt("SetEditing(false);");
                         source.Stmt($"{o.ContractTypeName} unedited = _unedited;");
+                        source.AppendIndent("bool unchanged = ((");
+                        foreach (var flagSetIndex in Enumerable.Range(1, (o.Properties.Length / 64) + 1))
+                        {
+                            source.Append($"_changedFlags{flagSetIndex} | ");
+                        }
+
+                        source.Append("0ul) == 0ul);").NL();
+                        using (source.If("unchanged"))
+                        {
+                            source.Stmt("OnEdited(unedited, unedited, true);");
+                            source.Stmt("return;");
+                        }
                         source.AppendIndent($"{o.ContractTypeName} edited = unedited with {{").Indent().NL();
                         foreach (var p in o.Properties)
                         {
@@ -278,9 +332,22 @@ public class ImmutableEditableObjectAdapterGenerator : IIncrementalGenerator
 
                         source.Outdent().AppendLine("};");
                         source
-                            .Stmt("OnEdited(unedited, edited);")
-                            .Stmt("CancelEdit();")
+                            .Stmt("OnEdited(unedited, edited, false);")
+                            .Stmt("DiscardChanges();")
                             .Stmt("SetField(ref _unedited, edited, nameof(Unedited));");
+                    }
+
+                    using (source.Decl("private void DiscardChanges()"))
+                    {
+                        foreach (var p in o.Properties)
+                        {
+                            source
+                                .Stmt($"bool is{p.Name}Changed = {p.Name}PropertyChanged;")
+                                .Stmt($"{p.Name}PropertyChanged = false;")
+                                .Stmt($"if (is{p.Name}Changed) OnPropertyChanging(nameof({p.Name}));")
+                                .Stmt($"_changed{p.Name} = default({p.TypeName})!;")
+                                .Stmt($"if (is{p.Name}Changed) OnPropertyChanged(nameof({p.Name}));");
+                        }
                     }
 
                     using (source.Decl("public override IEnumerable<string> ChangedProperties()"))
