@@ -27,7 +27,8 @@
     <PackageLicenseFile Condition="$(PackageLicenseExpression) == ''">LICENSE</PackageLicenseFile>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageIcon>icon.png</PackageIcon>
-    <PackageTags>immutable adapter MVVM MVUX uno uwp winui datagrid source-generator</PackageTags>
+    <Description>Adapts immutable state records into an IEditableObject replacing the record on edit, intended for Binding in a DataGrid.</Description>
+    <PackageTags>immutable;adapter;MVVM;MVUX;uno;uwp;winui;datagrid;source-generator</PackageTags>
   </PropertyGroup>
 
   <PropertyGroup Label="Package">
