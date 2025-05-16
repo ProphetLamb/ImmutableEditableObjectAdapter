@@ -203,6 +203,35 @@ internal sealed partial class EditablePerson
     {
         ThrowIfNotEditing();
         SetEditing(false);
+        OnEdited(Unedited, Unedited, true);
+        DiscardChanges();
+    }
+
+    public override void EndEdit()
+    {
+        ThrowIfNotEditing();
+        SetEditing(false);
+        global::Person unedited = _unedited;
+        bool changed = ((_changedFlags1 | 0ul) != 0ul);
+        if (!changed)
+        {
+            OnEdited(unedited, unedited, true);
+            return;
+        }
+
+        global::Person edited = unedited with {
+            Name = NamePropertyChanged ? _changedName : Unedited.Name,
+            FavouriteColor = FavouriteColorPropertyChanged ? _changedFavouriteColor : Unedited.FavouriteColor,
+            BirthDay = BirthDayPropertyChanged ? _changedBirthDay : Unedited.BirthDay,
+            DeceasedAt = DeceasedAtPropertyChanged ? _changedDeceasedAt : Unedited.DeceasedAt,
+        };
+        OnEdited(unedited, edited, false);
+        DiscardChanges();
+        SetField(ref _unedited, edited, nameof(Unedited));
+    }
+
+    private void DiscardChanges()
+    {
         bool isNameChanged = NamePropertyChanged;
         NamePropertyChanged = false;
         if (isNameChanged) OnPropertyChanging(nameof(Name));
@@ -223,21 +252,6 @@ internal sealed partial class EditablePerson
         if (isDeceasedAtChanged) OnPropertyChanging(nameof(DeceasedAt));
         _changedDeceasedAt = default(global::System.DateTimeOffset?)!;
         if (isDeceasedAtChanged) OnPropertyChanged(nameof(DeceasedAt));
-    }
-
-    public override void EndEdit()
-    {
-        ThrowIfNotEditing();
-        global::Person unedited = _unedited;
-        global::Person edited = unedited with {
-            Name = NamePropertyChanged ? _changedName : Unedited.Name,
-            FavouriteColor = FavouriteColorPropertyChanged ? _changedFavouriteColor : Unedited.FavouriteColor,
-            BirthDay = BirthDayPropertyChanged ? _changedBirthDay : Unedited.BirthDay,
-            DeceasedAt = DeceasedAtPropertyChanged ? _changedDeceasedAt : Unedited.DeceasedAt,
-        };
-        OnEdited(unedited, edited);
-        CancelEdit();
-        SetField(ref _unedited, edited, nameof(Unedited));
     }
 
     public override IEnumerable<string> ChangedProperties()
