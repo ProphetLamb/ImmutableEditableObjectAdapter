@@ -19,7 +19,7 @@ namespace ImmutableEditableObjectAdapter.Tests.TestAssembly
     using System;
     using System.ComponentModel;
 
-    public record Person(string Name, DateTimeOffset BirthDay);
+    public sealed record Person(string Name, string FavouriteColor, DateTimeOffset BirthDay, DateTimeOffset? DeceasedAt);
 
     public sealed partial class EditablePerson : ImmutableEditableObjectAdapter<Person>;
 
@@ -27,7 +27,12 @@ namespace ImmutableEditableObjectAdapter.Tests.TestAssembly
     {
         public static void Main()
         {
-
+            Person p = new(""Max"", ""Green"", DateTimeOffset.Now.AddYears(-43), null);
+            EditablePerson editable = new(p);
+            editable.Edited += (s, e) => p = s.IsPropertyChanged(nameof(Person.Name)) ? e.NewValue : p;
+            editable.BeginEdit();
+            editable.Name = ""Müller"";
+            editable.EndEdit();
         }
     }
 }

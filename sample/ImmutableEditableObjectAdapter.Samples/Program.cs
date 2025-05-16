@@ -2,7 +2,7 @@
 
 using System.ComponentModel;
 
-Person p = new("Max", "Green", DateTimeOffset.Now.AddYears(-43));
+Person p = new("Max", "Green", DateTimeOffset.Now.AddYears(-43), null);
 EditablePerson editable = new(p);
 editable.Edited += (s, e) => p = s.IsPropertyChanged(nameof(Person.Name)) ? e.NewValue : p;
 editable.BeginEdit();
@@ -10,6 +10,6 @@ editable.Name = "Müller";
 editable.EndEdit();
 Console.WriteLine("Hello, World!");
 
-internal sealed record Person(string Name, string FavouriteColor, DateTimeOffset BirthDay);
+internal sealed record Person(string Name, string FavouriteColor, DateTimeOffset BirthDay, DateTimeOffset? DeceasedAt);
 
 internal sealed partial class EditablePerson : ImmutableEditableObjectAdapter<Person>;

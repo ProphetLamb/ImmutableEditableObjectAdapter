@@ -8,39 +8,43 @@ internal sealed partial class EditablePerson
 {
     [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
     [global::System.Diagnostics.DebuggerBrowsable(global::System.Diagnostics.DebuggerBrowsableState.Never)]
-    private Person _unedited;
+    private global::Person _unedited;
     [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
     [global::System.Diagnostics.DebuggerBrowsable(global::System.Diagnostics.DebuggerBrowsableState.Never)]
     private ulong _changedFlags1;
-    public EditablePerson(Person originalValue)
+    public EditablePerson(global::Person originalValue)
     {
         _unedited = originalValue;
     }
 
-    public Person Unedited
+    public global::Person Unedited
     {
         get => _unedited;
         set
         {
             ThrowIfIsEditing();
-            Person oldValue = _unedited;
-            bool isNameChanged = !EqualityComparer<global::System.String>.Default.Equals(oldValue.Name, value.Name);
-            bool isFavouriteColorChanged = !EqualityComparer<global::System.String>.Default.Equals(oldValue.FavouriteColor, value.FavouriteColor);
+            global::Person oldValue = _unedited;
+            bool isNameChanged = !EqualityComparer<string>.Default.Equals(oldValue.Name, value.Name);
+            bool isFavouriteColorChanged = !EqualityComparer<string>.Default.Equals(oldValue.FavouriteColor, value.FavouriteColor);
             bool isBirthDayChanged = !EqualityComparer<global::System.DateTimeOffset>.Default.Equals(oldValue.BirthDay, value.BirthDay);
+            bool isDeceasedAtChanged = !EqualityComparer<global::System.DateTimeOffset?>.Default.Equals(oldValue.DeceasedAt, value.DeceasedAt);
             if (isNameChanged) OnPropertyChanging(nameof(Name));
             if (isFavouriteColorChanged) OnPropertyChanging(nameof(FavouriteColor));
             if (isBirthDayChanged) OnPropertyChanging(nameof(BirthDay));
-            if (!SetField(ref _unedited, value)) return;
+            if (isDeceasedAtChanged) OnPropertyChanging(nameof(DeceasedAt));
+            SetField(ref _unedited, value);
             if (isNameChanged) OnPropertyChanged(nameof(Name));
             if (isFavouriteColorChanged) OnPropertyChanged(nameof(FavouriteColor));
             if (isBirthDayChanged) OnPropertyChanged(nameof(BirthDay));
+            if (isDeceasedAtChanged) OnPropertyChanged(nameof(DeceasedAt));
         }
 
     }
 
     [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
     [global::System.Diagnostics.DebuggerBrowsable(global::System.Diagnostics.DebuggerBrowsableState.Never)]
-    private global::System.String _changedName = default(global::System.String)!;
+    private string _changedName = default(string)!;
+
     public bool NamePropertyChanged
     {
         get => (_changedFlags1 & 2ul) != 0ul;
@@ -63,8 +67,8 @@ internal sealed partial class EditablePerson
 
     }
 
-    /// <inheritdoc cref="Person.Name"/>
-    public global::System.String Name
+    /// <inheritdoc cref="global::Person.Name"/>
+    public string Name
     {
         get => NamePropertyChanged ? _changedName : Unedited.Name;
         set
@@ -77,7 +81,8 @@ internal sealed partial class EditablePerson
 
     [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
     [global::System.Diagnostics.DebuggerBrowsable(global::System.Diagnostics.DebuggerBrowsableState.Never)]
-    private global::System.String _changedFavouriteColor = default(global::System.String)!;
+    private string _changedFavouriteColor = default(string)!;
+
     public bool FavouriteColorPropertyChanged
     {
         get => (_changedFlags1 & 4ul) != 0ul;
@@ -100,8 +105,8 @@ internal sealed partial class EditablePerson
 
     }
 
-    /// <inheritdoc cref="Person.FavouriteColor"/>
-    public global::System.String FavouriteColor
+    /// <inheritdoc cref="global::Person.FavouriteColor"/>
+    public string FavouriteColor
     {
         get => FavouriteColorPropertyChanged ? _changedFavouriteColor : Unedited.FavouriteColor;
         set
@@ -115,6 +120,7 @@ internal sealed partial class EditablePerson
     [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
     [global::System.Diagnostics.DebuggerBrowsable(global::System.Diagnostics.DebuggerBrowsableState.Never)]
     private global::System.DateTimeOffset _changedBirthDay = default(global::System.DateTimeOffset)!;
+
     public bool BirthDayPropertyChanged
     {
         get => (_changedFlags1 & 8ul) != 0ul;
@@ -137,7 +143,7 @@ internal sealed partial class EditablePerson
 
     }
 
-    /// <inheritdoc cref="Person.BirthDay"/>
+    /// <inheritdoc cref="global::Person.BirthDay"/>
     public global::System.DateTimeOffset BirthDay
     {
         get => BirthDayPropertyChanged ? _changedBirthDay : Unedited.BirthDay;
@@ -145,6 +151,44 @@ internal sealed partial class EditablePerson
         {
             ThrowIfNotEditing();
             BirthDayPropertyChanged |= SetField(ref _changedBirthDay, value);
+        }
+
+    }
+
+    [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
+    [global::System.Diagnostics.DebuggerBrowsable(global::System.Diagnostics.DebuggerBrowsableState.Never)]
+    private global::System.DateTimeOffset? _changedDeceasedAt = default(global::System.DateTimeOffset?)!;
+
+    public bool DeceasedAtPropertyChanged
+    {
+        get => (_changedFlags1 & 16ul) != 0ul;
+        private set
+        {
+            bool isChanged = value != ((_changedFlags1 & 16ul) != 0ul);
+            if (isChanged) OnPropertyChanging();
+            if (value)
+            {
+                _changedFlags1 |= 16ul;
+            }
+
+            else
+            {
+                _changedFlags1 &= ~16ul;
+            }
+
+            if (isChanged) OnPropertyChanged();
+        }
+
+    }
+
+    /// <inheritdoc cref="global::Person.DeceasedAt"/>
+    public global::System.DateTimeOffset? DeceasedAt
+    {
+        get => DeceasedAtPropertyChanged ? _changedDeceasedAt : Unedited.DeceasedAt;
+        set
+        {
+            ThrowIfNotEditing();
+            DeceasedAtPropertyChanged |= SetField(ref _changedDeceasedAt, value);
         }
 
     }
@@ -162,27 +206,34 @@ internal sealed partial class EditablePerson
         bool isNameChanged = NamePropertyChanged;
         NamePropertyChanged = false;
         if (isNameChanged) OnPropertyChanging(nameof(Name));
-        _changedName = default(global::System.String)!;
+        _changedName = default(string)!;
         if (isNameChanged) OnPropertyChanged(nameof(Name));
         bool isFavouriteColorChanged = FavouriteColorPropertyChanged;
         FavouriteColorPropertyChanged = false;
         if (isFavouriteColorChanged) OnPropertyChanging(nameof(FavouriteColor));
-        _changedFavouriteColor = default(global::System.String)!;
+        _changedFavouriteColor = default(string)!;
         if (isFavouriteColorChanged) OnPropertyChanged(nameof(FavouriteColor));
         bool isBirthDayChanged = BirthDayPropertyChanged;
         BirthDayPropertyChanged = false;
         if (isBirthDayChanged) OnPropertyChanging(nameof(BirthDay));
         _changedBirthDay = default(global::System.DateTimeOffset)!;
         if (isBirthDayChanged) OnPropertyChanged(nameof(BirthDay));
+        bool isDeceasedAtChanged = DeceasedAtPropertyChanged;
+        DeceasedAtPropertyChanged = false;
+        if (isDeceasedAtChanged) OnPropertyChanging(nameof(DeceasedAt));
+        _changedDeceasedAt = default(global::System.DateTimeOffset?)!;
+        if (isDeceasedAtChanged) OnPropertyChanged(nameof(DeceasedAt));
     }
 
     public override void EndEdit()
     {
         ThrowIfNotEditing();
-        Person unedited = _unedited;
-        Person edited = unedited with {            Name = NamePropertyChanged ? _changedName : Unedited.Name,
+        global::Person unedited = _unedited;
+        global::Person edited = unedited with {
+            Name = NamePropertyChanged ? _changedName : Unedited.Name,
             FavouriteColor = FavouriteColorPropertyChanged ? _changedFavouriteColor : Unedited.FavouriteColor,
             BirthDay = BirthDayPropertyChanged ? _changedBirthDay : Unedited.BirthDay,
+            DeceasedAt = DeceasedAtPropertyChanged ? _changedDeceasedAt : Unedited.DeceasedAt,
         };
         OnEdited(unedited, edited);
         CancelEdit();
@@ -206,6 +257,11 @@ internal sealed partial class EditablePerson
             yield return nameof(BirthDay);
         }
 
+        if (DeceasedAtPropertyChanged)
+        {
+            yield return nameof(DeceasedAt);
+        }
+
         yield break;
     }
 
@@ -224,6 +280,11 @@ internal sealed partial class EditablePerson
         if (nameof(BirthDay).Equals(propertyName, StringComparison.Ordinal))
         {
             return BirthDayPropertyChanged;
+        }
+
+        if (nameof(DeceasedAt).Equals(propertyName, StringComparison.Ordinal))
+        {
+            return DeceasedAtPropertyChanged;
         }
 
         return false;
@@ -273,6 +334,7 @@ internal sealed partial class EditablePerson
         sb.Append("Name = ").Append(Name).Append(", ");
         sb.Append("FavouriteColor = ").Append(FavouriteColor).Append(", ");
         sb.Append("BirthDay = ").Append(BirthDay).Append(", ");
+        sb.Append("DeceasedAt = ").Append(DeceasedAt).Append(", ");
         sb.Length -= 2;
         sb.Append(" }");
         return sb.ToString();
