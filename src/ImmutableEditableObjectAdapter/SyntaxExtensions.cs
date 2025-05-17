@@ -2,70 +2,20 @@
 
 public static class SyntaxExtensions
 {
-    /// <summary>Attempts to find the a attribute attached to a <see cref="MemberDeclarationSyntax"/> node.</summary>
-    /// <param name="member">The member declaration.</param>
-    /// <param name="predicate">The function determining whether an attribute matches, or not.</param>
-    /// <typeparam name="M">The type of the <see cref="MemberDeclarationSyntax"/>.</typeparam>
-    /// <returns>The first <see cref="AttributeSyntax"/> found, if any.</returns>
-    public static AttributeSyntax? FindMemAttr<M>(
-        in this SynModel<M> member,
-        Func<SynModel<M>, AttributeSyntax, bool> predicate
-    )
-        where M : MemberDeclarationSyntax
-    {
-        foreach (var attrListSyntax in member.Node.AttributeLists)
-        {
-            foreach (var attrSyntax in attrListSyntax.Attributes)
-            {
-                if (predicate(member, attrSyntax))
-                {
-                    return attrSyntax;
-                }
-            }
-        }
-
-        return null;
-    }
-
-    /// <summary>Attempts to find the a attribute attached to a <see cref="BaseTypeDeclarationSyntax"/> node.</summary>
-    /// <param name="type">The member declaration.</param>
-    /// <param name="predicate">The function determining whether an attribute matches, or not.</param>
-    /// <typeparam name="T">The type of the <see cref="BaseTypeDeclarationSyntax"/>.</typeparam>
-    /// <returns>The first <see cref="AttributeSyntax"/> found, if any.</returns>
-    public static AttributeSyntax? FindTypeAttr<T>(
-        in this SynModel<T> type,
-        Func<SynModel<T>, AttributeSyntax, bool> predicate
-    )
-        where T : BaseTypeDeclarationSyntax
-    {
-        foreach (var attrListSyntax in type.Node.AttributeLists)
-        {
-            foreach (var attrSyntax in attrListSyntax.Attributes)
-            {
-                if (predicate(type, attrSyntax))
-                {
-                    return attrSyntax;
-                }
-            }
-        }
-
-        return null;
-    }
-
     /// <summary>Determines the trace from the node to the <see cref="NamespaceDeclarationSyntax"/>, by traversing the parents of the node.</summary>
     /// <param name="node">The node</param>
-    /// <typeparam name="P">The type of parents allowed in the trace. Throws if the type of any parent doesnt match.</typeparam>
-    /// <exception cref="InvalidOperationException">The type of a node is not assignable to <typeparamref name="P"/>.</exception>
-    public static (NamespaceDeclarationSyntax, ImmutableArray<P>) GetHierarchy<P>(this CSharpSyntaxNode node)
-        where P : MemberDeclarationSyntax
+    /// <typeparam name="T">The type of parents allowed in the trace. Throws if the type of any parent doesnt match.</typeparam>
+    /// <exception cref="InvalidOperationException">The type of a node is not assignable to <typeparamref name="T"/>.</exception>
+    public static (NamespaceDeclarationSyntax, ImmutableArray<T>) GetHierarchy<T>(this CSharpSyntaxNode node)
+        where T : MemberDeclarationSyntax
     {
-        var nesting = ImmutableArray.CreateBuilder<P>(16);
+        var nesting = ImmutableArray.CreateBuilder<T>(16);
         SyntaxNode? p = node;
         while ((p = p?.Parent) is not null)
         {
             switch (p)
             {
-                case P member:
+                case T member:
                     nesting.Add(member);
                     break;
                 case NamespaceDeclarationSyntax ns:

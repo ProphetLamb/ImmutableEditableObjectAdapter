@@ -212,8 +212,8 @@ internal sealed partial class EditablePerson
         ThrowIfNotEditing();
         SetEditing(false);
         global::Person unedited = _unedited;
-        bool changed = ((_changedFlags1 | 0ul) != 0ul);
-        if (!changed)
+        bool unchanged = ((_changedFlags1 | 0ul) == 0ul);
+        if (unchanged)
         {
             OnEdited(unedited, unedited, true);
             return;

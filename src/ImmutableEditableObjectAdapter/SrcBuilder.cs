@@ -26,7 +26,7 @@ public class SrcBuilder
     /// <param name="indentSize">The number of `space` characters used to indent a level.</param>
     public SrcBuilder(int initialCap, int indentSize = 4)
     {
-        Builder = new StringBuilder(initialCap);
+        Builder = new(initialCap);
         _indent = string.Empty;
         SetIndent(indentSize, 0);
     }
@@ -46,11 +46,19 @@ public class SrcBuilder
     /// <summary>Sets the indent size and level to the specifed values.</summary>
     /// <param name="size">The number of `space` characters used to indent a level.</param>
     /// <param name="level">The number of indentation levels from the beginning of the line.</param>
-    public void SetIndent(int size, int level)
+    public SrcBuilder SetIndent(int size, int level)
     {
         _size = size;
         _level = level;
-        _indent = new string(' ', IndentLevel * IndentSize);
+        _indent = new(' ', IndentLevel * IndentSize);
+        return this;
+    }
+
+    public SrcBuilder Clear()
+    {
+        Builder.Clear();
+        IndentLevel = 0;
+        return this;
     }
 
     #region StringBuilder
@@ -348,7 +356,7 @@ public class SrcBuilder
     /// <summary>Creates a new block builder, which can be used fluently.</summary>
     public SrcBlock Block()
     {
-        return new SrcBlock(this);
+        return new(this);
     }
 
     /// <summary>Same as <see cref="StartIfBlock"/>, but creates a new block builder, which can be used fluently.</summary>
@@ -372,7 +380,7 @@ public class SrcBuilder
     public delegate void ParamsAction(ref SrcColl p);
 
     /// <summary>Parameter formatting callback with a given context object.</summary>
-    public delegate void ParamsAction<C>(in C ctx, ref SrcColl p);
+    public delegate void ParamsAction<TContext>(in TContext ctx, ref SrcColl p);
 
     /// <summary>Appends the specified <paramref name="definition"/>, and creates a new block builder, which can be used fluently.</summary>
     /// <param name="definition">The definition for the call target.</param>
@@ -390,7 +398,7 @@ public class SrcBuilder
     /// <param name="definition">The definition for the call target.</param>
     /// <param name="ctx">The context object </param>
     /// <param name="parameters">The callback used to create the arguments for the call.</param>
-    public SrcBlock Decl<C>(string definition, in C ctx, ParamsAction<C> parameters)
+    public SrcBlock Decl<TContext>(string definition, in TContext ctx, ParamsAction<TContext> parameters)
     {
         AppendIndent(definition);
         var p = Params();
@@ -403,7 +411,7 @@ public class SrcBuilder
     /// <summary>Creates a new indentation builder, which can be used fluently.</summary>
     public SrcIndent Indented()
     {
-        return new SrcIndent(this);
+        return new(this);
     }
 
     /// <summary>Same as <see cref="StartSwitchBlock"/>, but returns a builder which can be used fluently to create the branches.</summary>
@@ -424,16 +432,16 @@ public class SrcBuilder
     /// <param name="caseConstant">Determines the constant value for the case expression `case <paramref name="caseConstant"/>:`.</param>
     /// <param name="caseBlock">Determines the content of the block following the case constant. Returns the whether to add a `break;` statement, or not.</param>
     /// <param name="defaultBlock">Determines the content of the default block.</param>
-    /// <typeparam name="S">The type of the sequence used as a source for the case branches.</typeparam>
+    /// <typeparam name="TSequence">The type of the sequence used as a source for the case branches.</typeparam>
     /// <typeparam name="T">The type of elements the the source sequence.</typeparam>
-    public void Switch<S, T>(
+    public void Switch<TSequence, T>(
         string value,
-        in S source,
+        in TSequence source,
         Func<T, string?> caseConstant,
         Func<SrcBuilder, T, CaseStyle> caseBlock,
-        Func<SrcBuilder, S, CaseStyle>? defaultBlock = null
+        Func<SrcBuilder, TSequence, CaseStyle>? defaultBlock = null
     )
-        where S : IEnumerable<T>
+        where TSequence : IEnumerable<T>
     {
         using (Switch(value))
         {
@@ -469,16 +477,16 @@ public class SrcBuilder
     /// <param name="caseConstant">Determines the constant value for the case expression `case <paramref name="caseConstant"/>:`.</param>
     /// <param name="caseBlock">Determines the content of the block following the case constant. Adds `break;` after each block.</param>
     /// <param name="defaultBlock">Determines the content of the default block.</param>
-    /// <typeparam name="S">The type of the sequence used as a source for the case branches.</typeparam>
+    /// <typeparam name="TSequence">The type of the sequence used as a source for the case branches.</typeparam>
     /// <typeparam name="T">The type of elements the the source sequence.</typeparam>
-    public void Switch<S, T>(
+    public void Switch<TSequence, T>(
         string value,
-        in S source,
+        in TSequence source,
         Func<T, string?> caseConstant,
         Action<SrcBuilder, T> caseBlock,
-        Action<SrcBuilder, S>? defaultBlock = null
+        Action<SrcBuilder, TSequence>? defaultBlock = null
     )
-        where S : IEnumerable<T>
+        where TSequence : IEnumerable<T>
     {
         using (Switch(value))
         {
@@ -508,7 +516,7 @@ public class SrcBuilder
     /// <param name="constant">The constant expression used for the `case <paramref name="constant"/>:`.</param>
     public SrcCase Case(string? constant)
     {
-        return new SrcCase(this, constant);
+        return new(this, constant);
     }
 
     /// <summary>Adds the collection definition, then a collection initializer. Returns a fluent builder used to define collection elements.</summary>
@@ -517,7 +525,7 @@ public class SrcBuilder
     public SrcColl Coll(string collection)
     {
         AppendIndent(collection);
-        return new SrcColl(
+        return new(
             this,
             static (b) => b.NL().AppendLine('{').Indent(),
             static (c, s) => c.Builder.AppendIndent().Append(s),
@@ -530,7 +538,7 @@ public class SrcBuilder
     /// <example>(one, two, three)</example>
     public SrcColl Params()
     {
-        return new SrcColl(
+        return new(
             this,
             static (b) => b.Append('('),
             static (c, s) => c.Builder.Append(s),
@@ -544,7 +552,7 @@ public class SrcBuilder
     public SrcColl Call(string invocation)
     {
         AppendIndent(invocation);
-        return new SrcColl(
+        return new(
             this,
             static (b) => b.Append('('),
             static (c, s) => c.Builder.Append(s),
@@ -557,13 +565,13 @@ public class SrcBuilder
     /// <param name="name">The name of the region</param>
     public SrcPre Region(string name)
     {
-        return new SrcPre(this, $"#region {name}", $"#endregion {name}");
+        return new(this, $"#region {name}", $"#endregion {name}");
     }
 
     /// <summary>Adds a `nullable enable`, `nullable restore` block. Returns a fluent builder which can be used to write into that region.</summary>
     public SrcPre NullableEnable()
     {
-        return new SrcPre(this, "#nullable enable", "#nullable restore");
+        return new(this, "#nullable enable", "#nullable restore");
     }
 
     /// <summary>Disposable handle starting and terminating a block.</summary>
@@ -876,7 +884,7 @@ public class SrcBuilder
     /// <returns></returns>
     public SrcDoc Doc(string elementName, string? attributes = null)
     {
-        return new SrcDoc(this, elementName, attributes);
+        return new(this, elementName, attributes);
     }
 
     /// <summary>Disposable handle for a XML-documentation element block.</summary>

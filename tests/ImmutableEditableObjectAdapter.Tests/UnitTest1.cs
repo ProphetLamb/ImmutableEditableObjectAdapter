@@ -54,12 +54,12 @@ namespace ImmutableEditableObjectAdapter.Tests.TestAssembly
         // Im unable to import the library required for IEnumerable &, EqualityComparer, as such only test relevant errors :/
         analyzerDiagnostics.Should().NotContain(d => d.Id != "CS0246" && d.Id != "CS0103" &&  d.Severity == DiagnosticSeverity.Error);
 
-        GeneratorDriverRunResult runResult = driver.GetRunResult();
+        var runResult = driver.GetRunResult();
 
         runResult.GeneratedTrees.Length.Should().Be(GEN_SOURCES_LEN);
         Assert.True(runResult.Diagnostics.IsEmpty);
 
-        GeneratorRunResult generatorResult = runResult.Results[0];
+        var generatorResult = runResult.Results[0];
         Assert.True(generatorResult.Generator.GetGeneratorType() == generator.GetType());
         Assert.True(generatorResult.Diagnostics.IsEmpty);
         generatorResult.GeneratedSources.Length.Should().Be(GEN_SOURCES_LEN);
