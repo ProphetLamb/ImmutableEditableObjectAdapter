@@ -113,6 +113,8 @@ public partial record MainModel
 </ui:FeedView>
 ```
 
+Feel free to review the [generated code](https://github.com/ProphetLamb/ImmutableEditableObjectAdapter/blob/main/sample/ImmutableEditableObjectAdapter.Samples.Uno/ImmutableEditableObjectAdapter.Samples.Uno/GeneratedFiles/ImmutableEditableObjectAdapter/ImmutableEditableObjectAdapter.ImmutableEditableObjectAdapterGenerator/EditablePersonValueConverter.g.cs#L5) for this example.
+
 ## Customization and API
 
 `ImmutableEditableObjectAdapter` API allows customizing the creation of events.
