@@ -39,7 +39,7 @@ namespace ImmutableEditableObjectAdapter.Tests.TestAssembly
 "
         );
         const int TEST_SOURCES_LEN = 1;
-        const int GEN_SOURCES_LEN = 2; // ImmutableEditableObjectAdapter + partial EditablePerson
+        const int GEN_SOURCES_LEN = 4; // ImmutableEditableObjectAdapter + EditableExtensions + EditablePerson + EditablePersonExtensions
         ImmutableEditableObjectAdapterGenerator generator = new();
 
         GeneratorDriver driver = CSharpGeneratorDriver.Create(generator);
