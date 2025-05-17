@@ -39,6 +39,8 @@ The constructed record is passed as `NewValue` to the `Edited` event, then set a
 
 ## UNO Platform Integration
 
+https://github.com/user-attachments/assets/0feaec4b-0177-4a19-a881-f0406d609b3e
+
 Binding commands to edits in UNO requires
 - a `IValueConverter`
 - a `ICommand` attached property
