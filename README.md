@@ -37,7 +37,83 @@ Person edited = Unedited with {
 
 The constructed record is passed as `NewValue` to the `Edited` event, then set as the new `Unedited`.
 
-## Customization
+## UNO Platform Integration
+
+Binding commands to edits in UNO requires
+- a `IValueConverter`
+- a `ICommand` attached property
+in addition to the above example.
+
+**Declare the models**
+
+Annotating the `EditablePerson` with `ImmutableEditableValueConverter` implements `IValueConverter` for the type `EditablePersonValueConverter`.
+
+```csharp
+namespace ImmutableEditableObjectAdapter.Samples.Uno.Models;
+
+public sealed record Person(string Name, string FavouriteColor, DateTimeOffset BirthDay, DateTimeOffset? DeceasedAt);
+
+[ImmutableEditableValueConverter(typeof(Converters.EditablePersonValueConverter))]
+public sealed partial class EditablePerson : System.ComponentModel.ImmutableEditableObjectAdapter<Person>;
+```
+
+**Declare the converter**
+
+```csharp
+namespace ImmutableEditableObjectAdapter.Samples.Uno.Converters;
+
+public sealed partial class EditablePersonValueConverter : IValueConverter;
+```
+
+**Create the model**
+
+- `Persons` provides data for the `DataGrid`.
+- `LastEdited` informs the user about the latest changes.
+- `PersonChanged` is invoked when a person changed.
+
+```csharp
+namespace ImmutableEditableObjectAdapter.Samples.Uno.Presentation;
+
+public partial record MainModel
+{
+    public IState<Person> LastEdited => State<Person>.Empty(this); 
+    
+    public IListState<Person> Persons => ListState.Value(this, IImmutableList<Person> () => [
+        new("Max", "Green", DateTimeOffset.Now.AddYears(-43), null),
+        new("Günter", "Orange", DateTimeOffset.Now.AddYears(-32), null),
+    ]);
+    
+    public async Task PersonChanged(EditedEventArgs<Person> edited)
+    {
+        if (edited.CancelledOrUnchanged)
+        {
+            return;
+        }
+    
+        await LastEdited.UpdateAsync(_ => edited.NewValue);
+    }
+}
+```
+
+**Create the UI**
+
+```xaml
+<TextBox IsReadOnly="True" Header="Changed Name" Text="{Binding LastEdited.Name}" />
+<TextBox IsReadOnly="True" Header="Changed Favourite Colour" Text="{Binding LastEdited.FavouriteColor}" />
+
+<ui:FeedView Source="{Binding Persons, Converter={StaticResource EditablePersonValueConverter}}">
+  <ui:FeedView.ValueTemplate>
+    <DataTemplate>
+      <wuc:DataGrid
+        ItemsSource="{Binding Data, Mode=TwoWay}"
+        utu:EditableExtensions.Command="{utu:AncestorBinding Path=DataContext.PersonChanged, AncestorType=ui:FeedView}">
+      </wuc:DataGrid>
+    </DataTemplate>
+  </ui:FeedView.ValueTemplate>
+</ui:FeedView>
+```
+
+## Customization and API
 
 `ImmutableEditableObjectAdapter` API allows customizing the creation of events.
 
@@ -54,6 +130,7 @@ public sealed class EditedEventArgs<TContract> : EventArgs
 {
     public TContract OldValue { get; }
     public TContract NewValue { get; }
+    public bool CancelledOrUnchanged { get; }
 }
 
 /// <summary>
@@ -66,13 +143,28 @@ public delegate void EditedEventHandler<TContract>(
 ) where TContract : notnull;
 
 /// <summary>
+/// Non-generic interface implemented by <see cref="ImmutableEditableObjectAdapter{TContract}"/>.
+/// </summary>
+public interface IImmutableEditableObjectAdapter : IEditableObject, INotifyPropertyChanged, INotifyPropertyChanging
+{
+   /// <summary>
+   /// Occurs once, before <see cref="IEditableObject.EndEdit"/> replaces the immutable state <c>record</c>, or <see cref="IEditableObject.CancelEdit"/> discards changes.
+   /// <br/>
+   /// sender is <cref see="ImmutableEditableObjectAdapter{TContract}"/>
+   /// <br/>
+   /// event args is <cref see="EditedEventArgs{TContract}"/>
+   /// </summary>
+   void RegisterOnce(EventHandler callback);
+}
+
+/// <summary>
 /// Derive a <c>sealed partial class</c> to generate a <see cref="IEditableObject"/> from a immutable state <c>record</c> type.
 /// <br/>
 /// Update the immutable state when the <see cref="Edited"/> event indicates the state is replaced.
 /// </summary>
 /// <typeparam name="TContract">The type of the contract <c>record</c>.</typeparam>
 public abstract class ImmutableEditableObjectAdapter<TContract>
-    : IEditableObject, INotifyPropertyChanged, INotifyPropertyChanging
+    : IImmutableEditableObjectAdapter
     where TContract : notnull
 {
     /// <inheritdoc />
@@ -109,5 +201,14 @@ public abstract class ImmutableEditableObjectAdapter<TContract>
     protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null);
     protected virtual void OnEdited(TContract oldValue, TContract newValue);
     protected bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null);
+}
+
+/// <summary>
+/// Generates an <see cref="Microsoft.UI.Xaml.Data.IValueConverter"/> for your <see cref="ImmutableEditableObjectAdapter{TContract}"/> type, by annotating it with the converter type you wish to generate the members of.
+/// </summary>
+/// <param name="valueConverterToGenerateType">The <c>sealed partial class</c> type of the <see cref="Microsoft.UI.Xaml.Data.IValueConverter"/> to generate.</param>
+public sealed class ImmutableEditableValueConverterAttribute(Type valueConverterToGenerateType) : Attribute
+{
+   public Type ValueConverterToGenerateType { get; } = valueConverterToGenerateType;
 }
 ```
