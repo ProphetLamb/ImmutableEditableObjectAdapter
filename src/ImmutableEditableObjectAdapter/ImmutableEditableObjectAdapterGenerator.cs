@@ -9,11 +9,18 @@ public class ImmutableEditableObjectAdapterGenerator : IIncrementalGenerator
     /// <inheritdoc />
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
+        var globalOptions = context.AnalyzerConfigOptionsProvider.Select((config, ct) =>
+            config.GlobalOptions.Keys.ToDictionary(
+                x => x,
+                x => config.GlobalOptions.TryGetValue(x, out var value) ? value : null
+            )
+        );
+
         context.RegisterPostInitializationOutput(PostInitializationSource.AddSources);
         var adapterObjectInformation = context
             .SyntaxProvider.CreateSyntaxProvider(MaybeAdapterObject, CollectAdapterObjectInformation)
             .Where(x => x is not null);
-        context.RegisterSourceOutput(adapterObjectInformation.Collect(), Generate!);
+        context.RegisterSourceOutput(adapterObjectInformation.Combine(globalOptions).Collect(), Generate!);
     }
 
     private static bool MaybeAdapterObject(SyntaxNode node, CancellationToken ct)
@@ -23,13 +30,31 @@ public class ImmutableEditableObjectAdapterGenerator : IIncrementalGenerator
             && d.Modifiers.Any(m => m.IsKind(SyntaxKind.PartialKeyword));
     }
 
-    private static void Generate(SourceProductionContext context, ImmutableArray<EditableAdapterObjectContext> objects)
+    private static void Generate(
+        SourceProductionContext context,
+        ImmutableArray<(EditableAdapterObjectContext, Dictionary<string, string?>)> items
+    )
     {
         SrcBuilder source = new(2048);
-        foreach (var o in objects)
+        foreach (var (o, globalOptions) in items)
         {
-            o.GenerateEditableObjectAdapter(source);
+            o.GenerateEditableObjectAdapter(source.Clear());
             context.AddSource($"{o.Declaration.Name}.g.cs", SourceText.From(source.ToString(), Encoding.UTF8));
+            if (o.GenerateEditableObjectExtensions(source.Clear()))
+            {
+                context.AddSource(
+                    $"{o.EditableObjectExtensionsName}.g.cs",
+                    SourceText.From(source.ToString(), Encoding.UTF8)
+                );
+            }
+
+            if (o.GenerateEditableObjectValueConverter(source.Clear()))
+            {
+                context.AddSource(
+                    $"{o.EditableObjectValueConverterName}.g.cs",
+                    SourceText.From(source.ToString(), Encoding.UTF8)
+                );
+            }
         }
     }
 
@@ -67,6 +92,8 @@ public class ImmutableEditableObjectAdapterGenerator : IIncrementalGenerator
             return null;
         }
 
+        var immutableEditableValueConverterType =
+            CollectImmutableEditableValueConverterType(context, declarationSyntax);
         var contractTypeInfo = baseType.TypeArguments[0];
         var contractTypeProperties = contractTypeInfo
             .GetMembers()
@@ -75,13 +102,38 @@ public class ImmutableEditableObjectAdapterGenerator : IIncrementalGenerator
             .Where(x => x is not null)
             .ToImmutableArray();
         return new(
-            Declaration: GetDeclaration(declarationSymbol, declarationSyntax),
+            Declaration: GetDeclaration(declarationSymbol),
             ContractTypeName: contractTypeInfo.GlobalQualifiedTypeName(),
-            Properties: contractTypeProperties!
+            Properties: contractTypeProperties!,
+            ImmutableEditableValueConverterType: immutableEditableValueConverterType
         );
     }
 
-    private static TypeDeclaration GetDeclaration(ITypeSymbol typeSymbol, ClassDeclarationSyntax typeSyntax)
+    private static TypeDeclaration? CollectImmutableEditableValueConverterType(
+        GeneratorSyntaxContext context,
+        ClassDeclarationSyntax declarationSyntax
+    )
+    {
+        var immutableEditableValueConverterType = declarationSyntax
+            .AttributeLists.SelectMany(x => x.Attributes)
+            .Select(x => (Symbol: context.SemanticModel.GetTypeInfo(x).Type, Syntax: x))
+            .Where(x => PostInitializationSource.ImmutableEditableValueConverterAttributeMetadataName.Equals(
+                    x.Symbol?.MetadataName,
+                    StringComparison.Ordinal
+                )
+            )
+            .Select(x => x.Syntax.ArgumentList?.Arguments.FirstOrDefault())
+            .Where(x => x is not null)
+            .Select(x => x!.Expression as TypeOfExpressionSyntax)
+            .Where(x => x is not null)
+            .Select(x => context.SemanticModel.GetTypeInfo(x!.Type).Type)
+            .Where(x => x is not null)
+            .Select(x => GetDeclaration(x!))
+            .FirstOrDefault();
+        return immutableEditableValueConverterType;
+    }
+
+    private static TypeDeclaration GetDeclaration(ITypeSymbol typeSymbol)
     {
         return new(
             Name: typeSymbol.Name,
@@ -89,7 +141,15 @@ public class ImmutableEditableObjectAdapterGenerator : IIncrementalGenerator
             Namespace: typeSymbol.ContainingNamespace.IsGlobalNamespace
                 ? null
                 : typeSymbol.ContainingNamespace.FullNamespaceName(),
-            Modifiers: string.Join(" ", typeSyntax.Modifiers.Select(m => m.Text))
+            Accessibility: typeSymbol.DeclaredAccessibility switch
+            {
+                Accessibility.Private => "private",
+                Accessibility.Internal => "internal",
+                Accessibility.Protected => "protected",
+                Accessibility.ProtectedAndInternal => "protected internal",
+                Accessibility.Public => "public",
+                _ => ""
+            }
         );
     }
 

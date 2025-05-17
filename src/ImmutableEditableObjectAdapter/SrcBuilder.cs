@@ -274,10 +274,12 @@ public class SrcBuilder
     }
 
     /// <summary>Decreases the <see cref="IndentLevel"/>. Appends indented `}` and two linebreaks.</summary>
-    public SrcBuilder BlockEnd()
+    public SrcBuilder BlockEnd(string? suffix = null)
     {
         Outdent();
-        AppendLine('}');
+        AppendIndent('}');
+        Append(suffix);
+        AppendLine();
         NL();
         return this;
     }
@@ -285,6 +287,7 @@ public class SrcBuilder
     #endregion Source file
 
     #region Csharp
+
 
     /// <summary>Appends indented `if (<paramref name="condition"/>)` followed by <see cref="BlockStart"/>.</summary>
     /// <param name="condition">The if condition.</param>
@@ -354,9 +357,9 @@ public class SrcBuilder
     }
 
     /// <summary>Creates a new block builder, which can be used fluently.</summary>
-    public SrcBlock Block()
+    public SrcBlock Block(string? suffix = null)
     {
-        return new(this);
+        return new(this, suffix);
     }
 
     /// <summary>Same as <see cref="StartIfBlock"/>, but creates a new block builder, which can be used fluently.</summary>
@@ -370,10 +373,11 @@ public class SrcBuilder
 
     /// <summary>Appends the specified <paramref name="definition"/>, and creates a new block builder, which can be used fluently.</summary>
     /// <param name="definition">The declaration.</param>
-    public SrcBlock Decl(string definition)
+    /// <param name="suffix">The suffix after the closing bracket.</param>
+    public SrcBlock Decl(string definition, string? suffix = null)
     {
         AppendLine(definition);
-        return Block();
+        return Block(suffix);
     }
 
     /// <summary>Parameter formatting callback.</summary>
@@ -561,11 +565,21 @@ public class SrcBuilder
         );
     }
 
+    public SrcBuilder Pre(string preprocessorExpression)
+    {
+        return AppendDoubleLine(preprocessorExpression);
+    }
+
     /// <summary>Adds a region block. Returns a fluent builder which can be used to write into that region.</summary>
     /// <param name="name">The name of the region</param>
     public SrcPre Region(string name)
     {
         return new(this, $"#region {name}", $"#endregion {name}");
+    }
+
+    public SrcPre PreIfEnd(string condition)
+    {
+        return new(this, $"#if {condition}", "#endif");
     }
 
     /// <summary>Adds a `nullable enable`, `nullable restore` block. Returns a fluent builder which can be used to write into that region.</summary>
@@ -584,19 +598,23 @@ public class SrcBuilder
 
         /// <summary>Initializes a new handle.</summary>
         /// <param name="builder">The builder used inside the handle.</param>
-        public SrcBlock(SrcBuilder builder)
+        /// <param name="suffix">The suffix after the closing bracket.</param>
+        public SrcBlock(SrcBuilder builder, string? suffix = null)
         {
             _disposed = false;
             Builder = builder;
             Builder.BlockStart();
+            Sufffix = suffix;
         }
+
+        public string? Sufffix { get; }
 
         /// <inheritdoc />
         public void Dispose()
         {
             if (!_disposed)
             {
-                Builder.BlockEnd();
+                Builder.BlockEnd(Sufffix);
             }
 
             _disposed = true;
@@ -786,7 +804,7 @@ public class SrcBuilder
             Start = start;
             End = end;
             Builder = builder;
-            Builder.AppendDoubleLine(Start);
+            Builder.Pre(Start);
         }
 
 
@@ -795,7 +813,7 @@ public class SrcBuilder
         {
             if (!_disposed)
             {
-                Builder.AppendDoubleLine(End);
+                Builder.Pre(End);
             }
 
             _disposed = true;
