@@ -50,9 +50,13 @@ public class ImmutableEditableObjectAdapterGenerator : IIncrementalGenerator
             public interface IImmutableEditableObjectAdapter : IEditableObject, INotifyPropertyChanged, INotifyPropertyChanging
             {
                 /// <summary>
-                /// Occurs before <see cref="IEditableObject.EndEdit"/> replaces the immutable state <c>record</c>, or <see cref="IEditableObject.CancelEdit"/> discards changes.
+                /// Occurs once, before <see cref="IEditableObject.EndEdit"/> replaces the immutable state <c>record</c>, or <see cref="IEditableObject.CancelEdit"/> discards changes.
+                /// <br/>
+                /// sender is <cref see="ImmutableEditableObjectAdapter{TContract}"/>
+                /// <br/>
+                /// event args is <cref see="EditedEventArgs{TContract}"/>
                 /// </summary>
-                event EventHandler? Edited;
+                void RegisterOnce(EventHandler callback);
             }
 
             /// <summary>
@@ -64,7 +68,7 @@ public class ImmutableEditableObjectAdapterGenerator : IIncrementalGenerator
             public abstract class ImmutableEditableObjectAdapter<TContract> : IImmutableEditableObjectAdapter
                 where TContract : notnull
             {
-                private ConditionalWeakTable<Delegate, Delegate>? _editedByGenericEdited;
+                private Queue<EventHandler>? _registerOnceCallbacks;
 
                 /// <inheritdoc />
                 public event PropertyChangedEventHandler? PropertyChanged;
@@ -78,35 +82,11 @@ public class ImmutableEditableObjectAdapterGenerator : IIncrementalGenerator
                 public event EditedEventHandler<TContract>? Edited;
 
                 /// <inheritdoc />
-                event EventHandler? IImmutableEditableObjectAdapter.Edited
+                void IImmutableEditableObjectAdapter.RegisterOnce(EventHandler callback)
                 {
-                    add
-                    {
-                        if (value is null)
-                        {
-                            return;
-                        }
-
-                        _editedByGenericEdited ??= new ConditionalWeakTable<Delegate, Delegate>();
-                        if (!_editedByGenericEdited.TryGetValue(value, out var edited))
-                        {
-                            edited = (EditedEventHandler<TContract>)value.Invoke;
-                            _editedByGenericEdited.Add(value, edited);
-                        }
-
-                        Edited += (EditedEventHandler<TContract>)edited;
-                    }
-                    remove
-                    {
-                        if (value is not null
-                            && _editedByGenericEdited is not null
-                            && _editedByGenericEdited.TryGetValue(value, out var edited)
-                            && _editedByGenericEdited.Remove(value)
-                        )
-                        {
-                            Edited -= (EditedEventHandler<TContract>)edited;
-                        }
-                    }
+                    Queue<EventHandler> registerOnceCallbacks = _registerOnceCallbacks ?? new Queue<EventHandler>();
+                    _registerOnceCallbacks = registerOnceCallbacks;
+                    registerOnceCallbacks.Enqueue(callback);
                 }
 
                 /// <inheritdoc />
@@ -140,7 +120,17 @@ public class ImmutableEditableObjectAdapterGenerator : IIncrementalGenerator
 
                 protected virtual void OnEdited(TContract oldValue, TContract newValue, bool cancelledOrUnchanged)
                 {
-                    Edited?.Invoke(this, new EditedEventArgs<TContract>(oldValue, newValue, cancelledOrUnchanged));
+                    EditedEventArgs<TContract> args = new EditedEventArgs<TContract>(oldValue, newValue, cancelledOrUnchanged)
+                    Edited?.Invoke(this, args);
+                    Queue<EventHandler>? registerOnceCallbacks = _registerOnceCallbacks;
+                    if (registerOnceCallbacks is not null)
+                    {
+                        while (registerOnceCallbacks.Count != 0)
+                        {
+                            EventHandler callback = registerOnceCallbacks.Dequeue();
+                            callback(this, args);
+                        }
+                    }
                 }
 
                 protected bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
