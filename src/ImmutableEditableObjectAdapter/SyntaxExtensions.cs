@@ -2,6 +2,24 @@
 
 public static class SyntaxExtensions
 {
+    public static string GlobalQualifiedTypeName(this ITypeSymbol type)
+    {
+        return type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+    }
+
+    public static string FullNamespaceName(this INamespaceSymbol ns)
+    {
+        List<string> nsList = [];
+        while (ns is not null && !ns.IsGlobalNamespace)
+        {
+            nsList.Add(ns.Name);
+            ns = ns.ContainingNamespace;
+        }
+
+        nsList.Reverse();
+        return string.Join(".", nsList);
+    }
+
     /// <summary>Determines the trace from the node to the <see cref="NamespaceDeclarationSyntax"/>, by traversing the parents of the node.</summary>
     /// <param name="node">The node</param>
     /// <typeparam name="T">The type of parents allowed in the trace. Throws if the type of any parent doesnt match.</typeparam>

@@ -51,8 +51,8 @@ public class ImmutableEditableObjectAdapterGenerator : IIncrementalGenerator
         var baseType = declarationSymbol.BaseType;
         while (baseType is not null)
         {
-            if (baseType.MetadataName.Equals(
-                    PostInitializationSource.EditableObjectAdapterMetadataName,
+            if (PostInitializationSource.EditableObjectAdapterMetadataName.Equals(
+                    baseType.MetadataName,
                     StringComparison.Ordinal
                 ))
             {
@@ -76,7 +76,7 @@ public class ImmutableEditableObjectAdapterGenerator : IIncrementalGenerator
             .ToImmutableArray();
         return new(
             Declaration: GetDeclaration(declarationSymbol, declarationSyntax),
-            ContractTypeName: GlobalQualifiedTypeName(contractTypeInfo),
+            ContractTypeName: contractTypeInfo.GlobalQualifiedTypeName(),
             Properties: contractTypeProperties!
         );
     }
@@ -85,30 +85,12 @@ public class ImmutableEditableObjectAdapterGenerator : IIncrementalGenerator
     {
         return new(
             Name: typeSymbol.Name,
-            QualifiedName: GlobalQualifiedTypeName(typeSymbol),
+            QualifiedName: typeSymbol.GlobalQualifiedTypeName(),
             Namespace: typeSymbol.ContainingNamespace.IsGlobalNamespace
                 ? null
-                : FullNamespace(typeSymbol.ContainingNamespace),
+                : typeSymbol.ContainingNamespace.FullNamespaceName(),
             Modifiers: string.Join(" ", typeSyntax.Modifiers.Select(m => m.Text))
         );
-    }
-
-    private static string GlobalQualifiedTypeName(ITypeSymbol type)
-    {
-        return type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-    }
-
-    private static string FullNamespace(INamespaceSymbol ns)
-    {
-        List<string> nsList = [];
-        while (ns is not null && !ns.IsGlobalNamespace)
-        {
-            nsList.Add(ns.Name);
-            ns = ns.ContainingNamespace;
-        }
-
-        nsList.Reverse();
-        return string.Join(".", nsList);
     }
 
     private static EditableAdapterProperty? CollectAdapterPropertyInformation(IPropertySymbol context)
@@ -118,9 +100,14 @@ public class ImmutableEditableObjectAdapterGenerator : IIncrementalGenerator
             return null;
         }
 
+        if (context.GetMethod is null)
+        {
+            return null;
+        }
+
         return new(
             Name: context.Name,
-            TypeName: GlobalQualifiedTypeName(context.Type),
+            TypeName: context.Type.GlobalQualifiedTypeName(),
             Modifiers: context.DeclaredAccessibility.ToString().Replace("|", "").ToLower(CultureInfo.InvariantCulture)
         );
     }
