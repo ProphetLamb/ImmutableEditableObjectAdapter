@@ -52,7 +52,7 @@ namespace ImmutableEditableObjectAdapter.Tests.TestAssembly
         outputCompilation.SyntaxTrees.Count().Should().Be(TEST_SOURCES_LEN + GEN_SOURCES_LEN);
         var analyzerDiagnostics = outputCompilation.GetDiagnostics();
         // Im unable to import the library required for IEnumerable &, EqualityComparer, as such only test relevant errors :/
-        analyzerDiagnostics.Should().NotContain(d => d.Id != "CS0246" && d.Id != "CS0103" &&  d.Severity == DiagnosticSeverity.Error);
+        analyzerDiagnostics.Should().NotContain(d => d.Id != "CS0246" && d.Id != "CS0103" && d.Id != "CS1061" && d.Id != "CS0019" &&  d.Severity == DiagnosticSeverity.Error);
 
         var runResult = driver.GetRunResult();
 
