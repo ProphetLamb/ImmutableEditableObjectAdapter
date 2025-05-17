@@ -1,4 +1,5 @@
-﻿#if HAS_UNO
+﻿#nullable enable
+#if HAS_UNO
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 #if !NO_WCT_DATAGRID
@@ -90,3 +91,4 @@ public static partial class EditableExtensions
 #endif
 }
 #endif
+#nullable restore

@@ -4,7 +4,7 @@ using global::System;
 using global::System.ComponentModel;
 
 [global::System.Diagnostics.DebuggerDisplayAttribute("{DebuggerDisplay(),nq}")]
-internal sealed partial class EditablePerson
+internal partial class EditablePerson
 {
     [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
     [global::System.Diagnostics.DebuggerBrowsable(global::System.Diagnostics.DebuggerBrowsableState.Never)]
@@ -15,7 +15,7 @@ internal sealed partial class EditablePerson
     public EditablePerson(global::Person originalValue)
     {
         _unedited = originalValue;
-    }
+    }    
 
     public global::Person Unedited
     {
@@ -37,9 +37,9 @@ internal sealed partial class EditablePerson
             if (isFavouriteColorChanged) OnPropertyChanged(nameof(FavouriteColor));
             if (isBirthDayChanged) OnPropertyChanged(nameof(BirthDay));
             if (isDeceasedAtChanged) OnPropertyChanged(nameof(DeceasedAt));
-        }
+        }        
 
-    }
+    }    
 
     [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
     [global::System.Diagnostics.DebuggerBrowsable(global::System.Diagnostics.DebuggerBrowsableState.Never)]
@@ -55,17 +55,17 @@ internal sealed partial class EditablePerson
             if (value)
             {
                 _changedFlags1 |= 2ul;
-            }
+            }            
 
             else
             {
                 _changedFlags1 &= ~2ul;
-            }
+            }            
 
             if (isChanged) OnPropertyChanged();
-        }
+        }        
 
-    }
+    }    
 
     /// <inheritdoc cref="global::Person.Name"/>
     public string Name
@@ -75,9 +75,9 @@ internal sealed partial class EditablePerson
         {
             ThrowIfNotEditing();
             NamePropertyChanged |= SetField(ref _changedName, value);
-        }
+        }        
 
-    }
+    }    
 
     [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
     [global::System.Diagnostics.DebuggerBrowsable(global::System.Diagnostics.DebuggerBrowsableState.Never)]
@@ -93,17 +93,17 @@ internal sealed partial class EditablePerson
             if (value)
             {
                 _changedFlags1 |= 4ul;
-            }
+            }            
 
             else
             {
                 _changedFlags1 &= ~4ul;
-            }
+            }            
 
             if (isChanged) OnPropertyChanged();
-        }
+        }        
 
-    }
+    }    
 
     /// <inheritdoc cref="global::Person.FavouriteColor"/>
     public string FavouriteColor
@@ -113,9 +113,9 @@ internal sealed partial class EditablePerson
         {
             ThrowIfNotEditing();
             FavouriteColorPropertyChanged |= SetField(ref _changedFavouriteColor, value);
-        }
+        }        
 
-    }
+    }    
 
     [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
     [global::System.Diagnostics.DebuggerBrowsable(global::System.Diagnostics.DebuggerBrowsableState.Never)]
@@ -131,17 +131,17 @@ internal sealed partial class EditablePerson
             if (value)
             {
                 _changedFlags1 |= 8ul;
-            }
+            }            
 
             else
             {
                 _changedFlags1 &= ~8ul;
-            }
+            }            
 
             if (isChanged) OnPropertyChanged();
-        }
+        }        
 
-    }
+    }    
 
     /// <inheritdoc cref="global::Person.BirthDay"/>
     public global::System.DateTimeOffset BirthDay
@@ -151,9 +151,9 @@ internal sealed partial class EditablePerson
         {
             ThrowIfNotEditing();
             BirthDayPropertyChanged |= SetField(ref _changedBirthDay, value);
-        }
+        }        
 
-    }
+    }    
 
     [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
     [global::System.Diagnostics.DebuggerBrowsable(global::System.Diagnostics.DebuggerBrowsableState.Never)]
@@ -169,17 +169,17 @@ internal sealed partial class EditablePerson
             if (value)
             {
                 _changedFlags1 |= 16ul;
-            }
+            }            
 
             else
             {
                 _changedFlags1 &= ~16ul;
-            }
+            }            
 
             if (isChanged) OnPropertyChanged();
-        }
+        }        
 
-    }
+    }    
 
     /// <inheritdoc cref="global::Person.DeceasedAt"/>
     public global::System.DateTimeOffset? DeceasedAt
@@ -189,15 +189,15 @@ internal sealed partial class EditablePerson
         {
             ThrowIfNotEditing();
             DeceasedAtPropertyChanged |= SetField(ref _changedDeceasedAt, value);
-        }
+        }        
 
-    }
+    }    
 
     public override void BeginEdit()
     {
         ThrowIfIsEditing();
         SetEditing(true);
-    }
+    }    
 
     public override void CancelEdit()
     {
@@ -205,7 +205,7 @@ internal sealed partial class EditablePerson
         SetEditing(false);
         OnEdited(Unedited, Unedited, true);
         DiscardChanges();
-    }
+    }    
 
     public override void EndEdit()
     {
@@ -217,7 +217,7 @@ internal sealed partial class EditablePerson
         {
             OnEdited(unedited, unedited, true);
             return;
-        }
+        }        
 
         global::Person edited = unedited with {
             Name = NamePropertyChanged ? _changedName : Unedited.Name,
@@ -228,7 +228,7 @@ internal sealed partial class EditablePerson
         OnEdited(unedited, edited, false);
         DiscardChanges();
         SetField(ref _unedited, edited, nameof(Unedited));
-    }
+    }    
 
     private void DiscardChanges()
     {
@@ -252,94 +252,94 @@ internal sealed partial class EditablePerson
         if (isDeceasedAtChanged) OnPropertyChanging(nameof(DeceasedAt));
         _changedDeceasedAt = default(global::System.DateTimeOffset?)!;
         if (isDeceasedAtChanged) OnPropertyChanged(nameof(DeceasedAt));
-    }
+    }    
 
     public override IEnumerable<string> ChangedProperties()
     {
         if (NamePropertyChanged)
         {
             yield return nameof(Name);
-        }
+        }        
 
         if (FavouriteColorPropertyChanged)
         {
             yield return nameof(FavouriteColor);
-        }
+        }        
 
         if (BirthDayPropertyChanged)
         {
             yield return nameof(BirthDay);
-        }
+        }        
 
         if (DeceasedAtPropertyChanged)
         {
             yield return nameof(DeceasedAt);
-        }
+        }        
 
         yield break;
-    }
+    }    
 
     public override bool IsPropertyChanged(string propertyName)
     {
         if (nameof(Name).Equals(propertyName, StringComparison.Ordinal))
         {
             return NamePropertyChanged;
-        }
+        }        
 
         if (nameof(FavouriteColor).Equals(propertyName, StringComparison.Ordinal))
         {
             return FavouriteColorPropertyChanged;
-        }
+        }        
 
         if (nameof(BirthDay).Equals(propertyName, StringComparison.Ordinal))
         {
             return BirthDayPropertyChanged;
-        }
+        }        
 
         if (nameof(DeceasedAt).Equals(propertyName, StringComparison.Ordinal))
         {
             return DeceasedAtPropertyChanged;
-        }
+        }        
 
         return false;
-    }
+    }    
 
     public bool IsEditing()
     {
         return (_changedFlags1 & 1ul) != 0ul;
-    }
+    }    
 
     private void SetEditing(bool value)
     {
         if (value)
         {
             _changedFlags1 |= 1ul;
-        }
+        }        
 
         else
         {
             _changedFlags1 &= ~1ul;
-        }
+        }        
 
-    }
+    }    
 
     private void ThrowIfIsEditing()
     {
         if (IsEditing())
         {
             throw new global::System.InvalidOperationException("EditablePerson is being edited. Cannot begin edit again, or modify 'Unmodified' before EndEdit(), or CancelEdit() is called.");
-        }
+        }        
 
-    }
+    }    
 
     private void ThrowIfNotEditing()
     {
         if (!IsEditing())
         {
             throw new global::System.InvalidOperationException("EditablePerson is not being edited. Cannot edit properties, besides 'Unmodified', before BeginEdit() is called.");
-        }
+        }        
 
-    }
+    }    
 
     internal string DebuggerDisplay()
     {
@@ -352,7 +352,7 @@ internal sealed partial class EditablePerson
         sb.Length -= 2;
         sb.Append(" }");
         return sb.ToString();
-    }
+    }    
 
 }
 

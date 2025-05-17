@@ -1,0 +1,52 @@
+﻿<Page x:Class="ImmutableEditableObjectAdapter.Samples.Uno.Presentation.MainPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:local="using:ImmutableEditableObjectAdapter.Samples.Uno.Presentation"
+      xmlns:uen="using:Uno.Extensions.Navigation.UI"
+      xmlns:utu="using:Uno.Toolkit.UI"
+      xmlns:um="using:Uno.Material"
+      xmlns:ui="clr-namespace:Uno.Extensions.Reactive.UI;assembly=Uno.Extensions.Reactive.UI"
+      xmlns:wuc="clr-namespace:CommunityToolkit.WinUI.UI.Controls;assembly=CommunityToolkit.WinUI.UI.Controls.DataGrid"
+      xmlns:converters="clr-namespace:ImmutableEditableObjectAdapter.Samples.Uno.Converters"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d"
+      NavigationCacheMode="Required"
+      Background="{ThemeResource BackgroundBrush}" d:DataContext="{d:DesignInstance local:MainViewModel}">
+  <Page.Resources>
+    <converters:EditablePersonValueConverter x:Key="EditablePersonValueConverter" />
+  </Page.Resources>
+  <ScrollViewer IsTabStop="True">
+    <Grid utu:SafeArea.Insets="VisibleBounds">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto" />
+        <RowDefinition />
+      </Grid.RowDefinitions>
+      <utu:NavigationBar Content="{Binding Title}" />
+
+      <StackPanel Grid.Row="1"
+                  HorizontalAlignment="Center"
+                  VerticalAlignment="Center"
+                  Spacing="16">
+        <TextBox Text="{Binding Name, Mode=TwoWay}"
+                 PlaceholderText="Enter your name:" />
+        <Button Content="Go to Second Page"
+                AutomationProperties.AutomationId="SecondPageButton"
+                Command="{Binding GoToSecond}" />
+
+        <TextBox IsReadOnly="True" Header="Changed Name" Text="{Binding LastEdited.Name}" />
+        <TextBox IsReadOnly="True" Header="Changed Favourite Colour" Text="{Binding LastEdited.FavouriteColor}" />
+
+        <ui:FeedView Source="{Binding Persons, Converter={StaticResource EditablePersonValueConverter}}">
+          <ui:FeedView.ValueTemplate>
+            <DataTemplate>
+              <wuc:DataGrid
+                ItemsSource="{Binding Data, Mode=TwoWay}"
+                utu:EditableExtensions.Command="{utu:AncestorBinding Path=DataContext.PersonChanged, AncestorType=ui:FeedView}">
+              </wuc:DataGrid>
+            </DataTemplate>
+          </ui:FeedView.ValueTemplate>
+        </ui:FeedView>
+      </StackPanel>
+    </Grid>
+  </ScrollViewer>
+</Page>

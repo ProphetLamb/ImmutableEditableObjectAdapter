@@ -1,14 +1,11 @@
 ﻿#nullable enable
 namespace System.ComponentModel
 {
-    using global::System;
-    using global::System.Runtime.CompilerServices;
-
     /// <summary>
     /// Provides the old, and new value of the <see cref="EditedEventHandler{TContract}"/>, and indicates whether the value has changed.
     /// </summary>
     /// <typeparam name="TContract">The type of the contract <c>record</c>.</typeparam>
-    public sealed class EditedEventArgs<TContract> : EventArgs
+    public sealed class EditedEventArgs<TContract> : global::System.EventArgs
     {
         public EditedEventArgs(TContract oldValue, TContract newValue, bool cancelledOrUnchanged)
         {
@@ -35,7 +32,7 @@ namespace System.ComponentModel
     /// <summary>
     /// Non-generic interface implemented by <see cref="ImmutableEditableObjectAdapter{TContract}"/>.
     /// </summary>
-    public interface IImmutableEditableObjectAdapter : IEditableObject, INotifyPropertyChanged, INotifyPropertyChanging
+    public interface IImmutableEditableObjectAdapter : global::System.ComponentModel.IEditableObject, global::System.ComponentModel.INotifyPropertyChanged, global::System.ComponentModel.INotifyPropertyChanging
     {
         /// <summary>
         /// Occurs once, before <see cref="IEditableObject.EndEdit"/> replaces the immutable state <c>record</c>, or <see cref="IEditableObject.CancelEdit"/> discards changes.
@@ -44,7 +41,7 @@ namespace System.ComponentModel
         /// <br/>
         /// event args is <cref see="EditedEventArgs{TContract}"/>
         /// </summary>
-        void RegisterOnce(EventHandler callback);
+        void RegisterOnce(global::System.EventHandler callback);
     }
 
     /// <summary>
@@ -56,13 +53,13 @@ namespace System.ComponentModel
     public abstract class ImmutableEditableObjectAdapter<TContract> : IImmutableEditableObjectAdapter
         where TContract : notnull
     {
-        private Queue<EventHandler>? _registerOnceCallbacks;
+        private global::System.Collections.Generic.Queue<global::System.EventHandler>? _registerOnceCallbacks;
 
         /// <inheritdoc />
-        public event PropertyChangedEventHandler? PropertyChanged;
+        public event global::System.ComponentModel.PropertyChangedEventHandler? PropertyChanged;
 
         /// <inheritdoc />
-        public event PropertyChangingEventHandler? PropertyChanging;
+        public event global::System.ComponentModel.PropertyChangingEventHandler? PropertyChanging;
 
         /// <summary>
         /// Occurs before <see cref="EndEdit"/> replaces the immutable state <c>record</c>, or <see cref="CancelEdit"/> discards changes.
@@ -70,9 +67,9 @@ namespace System.ComponentModel
         public event EditedEventHandler<TContract>? Edited;
 
         /// <inheritdoc />
-        void IImmutableEditableObjectAdapter.RegisterOnce(EventHandler callback)
+        void IImmutableEditableObjectAdapter.RegisterOnce(global::System.EventHandler callback)
         {
-            Queue<EventHandler> registerOnceCallbacks = _registerOnceCallbacks ?? new Queue<EventHandler>();
+            global::System.Collections.Generic.Queue<global::System.EventHandler> registerOnceCallbacks = _registerOnceCallbacks ?? new global::System.Collections.Generic.Queue<global::System.EventHandler>();
             _registerOnceCallbacks = registerOnceCallbacks;
             registerOnceCallbacks.Enqueue(callback);
         }
@@ -89,19 +86,19 @@ namespace System.ComponentModel
         /// <summary>
         /// Enumerate names of all changed properties during edit.
         /// </summary>
-        public abstract IEnumerable<string> ChangedProperties();
+        public abstract global::System.Collections.Generic.IEnumerable<string> ChangedProperties();
 
         /// <summary>
         /// Indicates whether the property with the name name has changed during edit.
         /// </summary>
         public abstract bool IsPropertyChanged(string propertyName);
 
-        protected virtual void OnPropertyChanging([CallerMemberName] string? propertyName = null)
+        protected virtual void OnPropertyChanging([global::System.Runtime.CompilerServices.CallerMemberName] string? propertyName = null)
         {
             PropertyChanging?.Invoke(this, new PropertyChangingEventArgs(propertyName));
         }
 
-        protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+        protected virtual void OnPropertyChanged([global::System.Runtime.CompilerServices.CallerMemberName] string? propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
@@ -111,7 +108,7 @@ namespace System.ComponentModel
             EditedEventArgs<TContract> args = new EditedEventArgs<TContract>(oldValue, newValue, cancelledOrUnchanged);
             Edited?.Invoke(this, args);
             Queue<EventHandler>? registerOnceCallbacks = _registerOnceCallbacks;
-            if (registerOnceCallbacks is not null)
+            if (registerOnceCallbacks != null)
             {
                 while (registerOnceCallbacks.Count != 0)
                 {
@@ -121,9 +118,9 @@ namespace System.ComponentModel
             }
         }
 
-        protected bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
+        protected bool SetField<T>(ref T field, T value, [global::System.Runtime.CompilerServices.CallerMemberName] string? propertyName = null)
         {
-            if (EqualityComparer<T>.Default.Equals(field, value))
+            if (global::System.Collections.Generic.EqualityComparer<T>.Default.Equals(field, value))
             {
                 return false;
             }
@@ -132,6 +129,23 @@ namespace System.ComponentModel
             OnPropertyChanged(propertyName);
             return true;
         }
+    }
+}
+
+/// <summary>
+/// Generates an <see cref="Microsoft.UI.Xaml.Data.IValueConverter"/> for your <see cref="ImmutableEditableObjectAdapter{TContract}"/> type, by annotating it with the converter type you wish to generate the members of.
+/// </summary>
+public sealed class ImmutableEditableValueConverterAttribute : global::System.Attribute
+{
+    public global::System.Type ValueConverterToGenerateType { get; }
+
+    /// <summary>
+    /// Generates an <see cref="Microsoft.UI.Xaml.Data.IValueConverter"/> for your <see cref="ImmutableEditableObjectAdapter{TContract}"/> type, by annotating it with the converter type you wish to generate the members of.
+    /// </summary>
+    /// <param name="valueConverterToGenerateType">The <c>sealed partial class</c> type of the <see cref="Microsoft.UI.Xaml.Data.IValueConverter"/> to generate.</param>
+    public ImmutableEditableValueConverterAttribute(global::System.Type valueConverterToGenerateType)
+    {
+        ValueConverterToGenerateType = valueConverterToGenerateType;
     }
 }
 #nullable restore

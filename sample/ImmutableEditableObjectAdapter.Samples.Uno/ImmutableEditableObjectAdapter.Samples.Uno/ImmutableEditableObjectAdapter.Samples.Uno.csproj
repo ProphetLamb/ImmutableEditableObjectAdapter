@@ -1,0 +1,55 @@
+<Project Sdk="Uno.Sdk">
+    <PropertyGroup>
+        <TargetFrameworks>net9.0-desktop</TargetFrameworks>
+
+        <OutputType>Exe</OutputType>
+        <UnoSingleProject>true</UnoSingleProject>
+
+        <!-- Display name -->
+        <ApplicationTitle>ImmutableEditableObjectAdapter.Samples.Uno</ApplicationTitle>
+        <!-- App Identifier -->
+        <ApplicationId>com.companyname.immutableeditableobjectadapter-samples-uno</ApplicationId>
+        <!-- Versions -->
+        <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+        <ApplicationVersion>1</ApplicationVersion>
+        <!-- Package Publisher -->
+        <ApplicationPublisher>ImmutableEditableObjectAdapter.Samples.Uno</ApplicationPublisher>
+        <!-- Package Description -->
+        <Description>ImmutableEditableObjectAdapter.Samples.Uno powered by Uno Platform.</Description>
+
+        <!--
+          UnoFeatures let's you quickly add and manage implicit package references based on the features you want to use.
+          https://aka.platform.uno/singleproject-features
+        -->
+        <UnoFeatures>
+            Material;
+            Dsp;
+            Hosting;
+            Toolkit;
+            Logging;
+            MVUX;
+            Configuration;
+            Localization;
+            Navigation;
+            ThemeService;
+            SkiaRenderer;
+        </UnoFeatures>
+
+        <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+        <CompilerGeneratedFilesOutputPath>./GeneratedFiles</CompilerGeneratedFilesOutputPath>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Uno.CommunityToolkit.WinUI.UI"/>
+        <PackageReference Include="Uno.CommunityToolkit.WinUI.UI.Controls.DataGrid"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="../../../src/ImmutableEditableObjectAdapter/ImmutableEditableObjectAdapter.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Compile Remove="./GeneratedFiles/**/*.cs"/>
+    </ItemGroup>
+
+</Project>
