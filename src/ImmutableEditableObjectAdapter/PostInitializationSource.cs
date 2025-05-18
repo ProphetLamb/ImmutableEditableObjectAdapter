@@ -125,7 +125,8 @@ public static class PostInitializationSource
                                                                        Queue<EventHandler>? registerOnceCallbacks = _registerOnceCallbacks;
                                                                        if (registerOnceCallbacks != null)
                                                                        {
-                                                                           while (registerOnceCallbacks.Count != 0)
+                                                                           int count = registerOnceCallbacks.Count;
+                                                                           for (int index = 0; index < count; index++)
                                                                            {
                                                                                EventHandler callback = registerOnceCallbacks.Dequeue();
                                                                                callback(this, args);
