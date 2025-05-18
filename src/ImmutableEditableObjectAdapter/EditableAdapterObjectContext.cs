@@ -29,8 +29,6 @@ public sealed record EditableAdapterObjectContext(
             ? default(SrcBuilder.SrcBlock?)
             : source.Decl($"namespace {Type.Namespace}");
 
-        source.Stmt("using global::System;").Stmt("using global::System.ComponentModel;").NL();
-
         source.Stmt("[global::System.Diagnostics.DebuggerDisplayAttribute(\"{DebuggerDisplay(),nq}\")]");
         using (source.Decl($"{Type.Accessibility} partial class {Type.Name}"))
         {
