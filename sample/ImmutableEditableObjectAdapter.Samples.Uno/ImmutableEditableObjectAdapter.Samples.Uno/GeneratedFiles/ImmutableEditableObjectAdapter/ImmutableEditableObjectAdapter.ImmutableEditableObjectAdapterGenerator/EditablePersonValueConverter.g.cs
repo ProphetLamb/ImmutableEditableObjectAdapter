@@ -1,0 +1,50 @@
+﻿
+#nullable enable
+namespace ImmutableEditableObjectAdapter.Samples.Uno.Converters
+{
+    public sealed partial class EditablePersonValueConverter
+    {
+        public object? Convert(object? value, global::System.Type targetType, object? parameter, string language)
+        {
+            return value switch
+            {
+                null => null,
+                global::ImmutableEditableObjectAdapter.Samples.Uno.Models.Person x => EditablePersonExtensions.ToEditable(x),
+
+                #if HAS_UNO
+                global::System.Collections.Immutable.IImmutableList<global::ImmutableEditableObjectAdapter.Samples.Uno.Models.Person> x => EditablePersonExtensions.ToEditableList(x),
+                global::Uno.Extensions.Reactive.IFeed<global::ImmutableEditableObjectAdapter.Samples.Uno.Models.Person> x => EditablePersonExtensions.ToEditableFeed(x),
+                global::Uno.Extensions.Reactive.IFeed<global::System.Collections.Immutable.IImmutableList<global::ImmutableEditableObjectAdapter.Samples.Uno.Models.Person>> x => EditablePersonExtensions.ToEditableListFeed(x.AsListFeed()).AsFeed(),
+                global::Uno.Extensions.Reactive.IListFeed<global::ImmutableEditableObjectAdapter.Samples.Uno.Models.Person> x => EditablePersonExtensions.ToEditableListFeed(x),
+
+                #endif
+                _ => throw new NotSupportedException($"{nameof(EditablePersonValueConverter)} can only convert {nameof(global::ImmutableEditableObjectAdapter.Samples.Uno.Models.Person)} to {nameof(global::ImmutableEditableObjectAdapter.Samples.Uno.Models.EditablePerson)} types, as well as immutable lists and feeds thereof."),
+            };
+            
+        }
+        
+        public object? ConvertBack(object? value, global::System.Type targetType, object? parameter, string language)
+        {
+            return value switch
+            {
+                null => null,
+                global::ImmutableEditableObjectAdapter.Samples.Uno.Models.EditablePerson x => x.Unedited,
+
+                #if HAS_UNO
+                global::System.Collections.Immutable.IImmutableList<global::ImmutableEditableObjectAdapter.Samples.Uno.Models.EditablePerson> l => (global::System.Collections.Immutable.IImmutableList<global::ImmutableEditableObjectAdapter.Samples.Uno.Models.Person>)l.Select(x => x.Unedited).ToImmutableArray(),
+                global::Uno.Extensions.Reactive.IFeed<global::ImmutableEditableObjectAdapter.Samples.Uno.Models.EditablePerson> f => f.Select(x => x.Unedited),
+                global::Uno.Extensions.Reactive.IFeed<global::System.Collections.Immutable.IImmutableList<global::ImmutableEditableObjectAdapter.Samples.Uno.Models.EditablePerson>> f => f.Select(global::System.Collections.Immutable.IImmutableList<global::ImmutableEditableObjectAdapter.Samples.Uno.Models.Person> (l) => l.Select(x => x.Unedited).ToImmutableArray()),
+                global::Uno.Extensions.Reactive.IListFeed<global::ImmutableEditableObjectAdapter.Samples.Uno.Models.EditablePerson> f => f.AsFeed().Select(global::System.Collections.Immutable.IImmutableList<global::ImmutableEditableObjectAdapter.Samples.Uno.Models.Person> (l) => l.Select(x => x.Unedited).ToImmutableArray()).AsListFeed(),
+
+                #endif
+                _ => throw new NotSupportedException($"{nameof(EditablePersonValueConverter)} can only convert {nameof(global::ImmutableEditableObjectAdapter.Samples.Uno.Models.EditablePerson)} back to {nameof(global::ImmutableEditableObjectAdapter.Samples.Uno.Models.Person)} types, as well as immutable lists and feeds thereof."),
+            };
+            
+        }
+        
+    }
+    
+}
+
+
+#nullable restore
