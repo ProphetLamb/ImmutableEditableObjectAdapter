@@ -265,7 +265,7 @@ public class ImmutableEditableObjectAdapterGenerator : IIncrementalGenerator
 
         return new(
             Name: context.Name,
-            TypeName: context.Type.GlobalQualifiedTypeName(),
+            Type: GetDeclaration(context.Type),
             Modifiers: context.DeclaredAccessibility.ToString().Replace("|", "").ToLower(CultureInfo.InvariantCulture)
         );
     }

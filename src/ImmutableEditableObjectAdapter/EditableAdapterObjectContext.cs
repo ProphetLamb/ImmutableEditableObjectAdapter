@@ -7,7 +7,11 @@ public sealed record TypeDeclaration(
     string? Namespace
 );
 
-public sealed record EditableAdapterProperty(string Name, string TypeName, string Modifiers);
+public sealed record EditableAdapterProperty(
+    string Name,
+    TypeDeclaration Type,
+    string Modifiers
+);
 
 public sealed record EditableAdapterValueConverterContext(
     TypeDeclaration Type,
@@ -66,7 +70,7 @@ public sealed record EditableAdapterObjectContext(
                     foreach (var p in Properties)
                     {
                         source.Stmt(
-                            $"bool is{p.Name}Changed = !EqualityComparer<{p.TypeName}>.Default.Equals(oldValue.{p.Name}, value.{p.Name});"
+                            $"bool is{p.Name}Changed = !EqualityComparer<{p.Type.QualifiedName}>.Default.Equals(oldValue.{p.Name}, value.{p.Name});"
                         );
                     }
 
@@ -91,9 +95,11 @@ public sealed record EditableAdapterObjectContext(
                 source.Stmt(
                     "[global::System.Diagnostics.DebuggerBrowsable(global::System.Diagnostics.DebuggerBrowsableState.Never)]"
                 );
-                source.Stmt($"private {p.TypeName} _changed{p.Name} = default({p.TypeName})!;").NL();
+                source.Stmt($"private {p.Type.QualifiedName} _changed{p.Name} = default({p.Type.QualifiedName})!;").NL();
 
-                source.Stmt("[global::System.ComponentModel.DataAnnotations.DisplayAttribute(AutoGenerateField = false)]");
+                source.Stmt(
+                    "[global::System.ComponentModel.DataAnnotations.DisplayAttribute(AutoGenerateField = false)]"
+                );
                 using (source.Decl($"public bool {p.Name}PropertyChanged"))
                 {
                     var flagStoreIndex = (index / 64) + 1;
@@ -120,7 +126,7 @@ public sealed record EditableAdapterObjectContext(
                 }
 
                 source.DocLine("inheritdoc", $"cref=\"{ContractType.QualifiedName}.{p.Name}\"");
-                using (source.Decl($"{p.Modifiers} {p.TypeName} {p.Name}"))
+                using (source.Decl($"{p.Modifiers} {p.Type.QualifiedName} {p.Name}"))
                 {
                     source.Stmt($"get => {p.Name}PropertyChanged ? _changed{p.Name} : Unedited.{p.Name};");
                     using (source.Decl("set"))
@@ -186,7 +192,7 @@ public sealed record EditableAdapterObjectContext(
                         .Stmt($"bool is{p.Name}Changed = {p.Name}PropertyChanged;")
                         .Stmt($"{p.Name}PropertyChanged = false;")
                         .Stmt($"if (is{p.Name}Changed) OnPropertyChanging(nameof({p.Name}));")
-                        .Stmt($"_changed{p.Name} = default({p.TypeName})!;")
+                        .Stmt($"_changed{p.Name} = default({p.Type.QualifiedName})!;")
                         .Stmt($"if (is{p.Name}Changed) OnPropertyChanged(nameof({p.Name}));");
                 }
             }
