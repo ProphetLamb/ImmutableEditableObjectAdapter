@@ -39,31 +39,37 @@ The constructed record is passed as `NewValue` to the `Edited` event, then set a
 
 ## UNO Platform Integration
 
-https://github.com/user-attachments/assets/0feaec4b-0177-4a19-a881-f0406d609b3e
+https://github.com/user-attachments/assets/26737d4e-9eeb-48d0-814c-687048ce235d
 
 Binding commands to edits in UNO requires
 - a `IValueConverter`
 - a `ICommand` attached property
-in addition to the above example.
+
+in addition to the above example. `ImmutableEditableObjectAdapter` generates these implementations.
 
 **Declare the models**
-
-Annotating the `EditablePerson` with `ImmutableEditableValueConverter` implements `IValueConverter` for the type `EditablePersonValueConverter`.
 
 ```csharp
 namespace ImmutableEditableObjectAdapter.Samples.Uno.Models;
 
-public sealed record Person(string Name, string FavouriteColor, DateTimeOffset BirthDay, DateTimeOffset? DeceasedAt);
+public sealed record Person(
+  string Name,
+  [property: Display(Name = "Color")] string FavouriteColor,
+  DateTimeOffset BirthDay,
+  DateTimeOffset? DeceasedAt
+);
 
-[ImmutableEditableValueConverter(typeof(Converters.EditablePersonValueConverter))]
 public sealed partial class EditablePerson : System.ComponentModel.ImmutableEditableObjectAdapter<Person>;
 ```
 
 **Declare the converter**
 
+Annotate the `EditablePersonValueConverter` implementing `IValueConverter` with the `ImmutableEditableValueConverter` attribute for the type `EditablePerson`.
+
 ```csharp
 namespace ImmutableEditableObjectAdapter.Samples.Uno.Converters;
 
+[ImmutableEditableValueConverter(typeof(EditablePerson))]
 public sealed partial class EditablePersonValueConverter : IValueConverter;
 ```
 
@@ -99,7 +105,13 @@ public partial record MainModel
 
 **Create the UI**
 
-```xaml
+```xml
+<Page.Resources>
+  <converters:EditablePersonValueConverter x:Key="EditablePersonValueConverter" />
+</Page.Resources>
+```
+
+```xml
 <TextBox IsReadOnly="True" Header="Changed Name" Text="{Binding LastEdited.Name}" />
 <TextBox IsReadOnly="True" Header="Changed Favourite Colour" Text="{Binding LastEdited.FavouriteColor}" />
 
