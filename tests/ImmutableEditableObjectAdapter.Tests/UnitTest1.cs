@@ -18,10 +18,14 @@ namespace ImmutableEditableObjectAdapter.Tests.TestAssembly
 {
     using System;
     using System.ComponentModel;
+    using Microsoft.UI.Xaml.Data;
 
     public sealed record Person(string Name, string FavouriteColor, DateTimeOffset BirthDay, DateTimeOffset? DeceasedAt);
 
     public sealed partial class EditablePerson : ImmutableEditableObjectAdapter<Person>;
+
+    [ImmutableEditableValueConverter(typeof(EditablePerson))]
+    public sealed partial class EditablePersonValueConverter : IValueConverter;
 
     public static class Program
     {
@@ -36,10 +40,20 @@ namespace ImmutableEditableObjectAdapter.Tests.TestAssembly
         }
     }
 }
+
+namespace Microsoft.UI.Xaml.Data {
+
+    public interface IValueConverter
+    {
+      object Convert(object value, Type targetType, object parameter, string language);
+
+      object ConvertBack(object value, Type targetType, object parameter, string language);
+    }
+}
 "
         );
         const int TEST_SOURCES_LEN = 1;
-        const int GEN_SOURCES_LEN = 4; // ImmutableEditableObjectAdapter + EditableExtensions + EditablePerson + EditablePersonExtensions
+        const int GEN_SOURCES_LEN = 5; // ImmutableEditableObjectAdapter + EditableExtensions + EditablePerson + EditablePersonExtensions + EditablePersonValueConverter
         ImmutableEditableObjectAdapterGenerator generator = new();
 
         GeneratorDriver driver = CSharpGeneratorDriver.Create(generator);
@@ -51,8 +65,6 @@ namespace ImmutableEditableObjectAdapter.Tests.TestAssembly
         generatorDiagnostics.Should().NotContain(d => d.Severity == DiagnosticSeverity.Warning);
         outputCompilation.SyntaxTrees.Count().Should().Be(TEST_SOURCES_LEN + GEN_SOURCES_LEN);
         var analyzerDiagnostics = outputCompilation.GetDiagnostics();
-        // Im unable to import the library required for IEnumerable &, EqualityComparer, as such only test relevant errors :/
-        analyzerDiagnostics.Should().NotContain(d => d.Id != "CS0246" && d.Id != "CS0103" && d.Id != "CS1061" && d.Id != "CS0019" &&  d.Severity == DiagnosticSeverity.Error);
 
         var runResult = driver.GetRunResult();
 
@@ -72,7 +84,6 @@ namespace ImmutableEditableObjectAdapter.Tests.TestAssembly
             "compilation",
             [CSharpSyntaxTree.ParseText(source)],
             [
-
                 MetadataReference.CreateFromFile(Assembly.Load("System").Location),
                 MetadataReference.CreateFromFile(Assembly.Load("System.Runtime").Location),
                 MetadataReference.CreateFromFile(Assembly.Load("System.Linq").Location),

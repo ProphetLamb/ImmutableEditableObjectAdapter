@@ -9,6 +9,9 @@ public static class PostInitializationSource
     public const string ImmutableEditableValueConverterAttributeMetadataName =
         "ImmutableEditableValueConverterAttribute";
 
+    public const string ImmutableEditableValueConverterAttributeShortName =
+        "ImmutableEditableValueConverter";
+
     public const string EditableObjectAdapterDeclaration = """
                                                            #nullable enable
                                                            namespace System.ComponentModel

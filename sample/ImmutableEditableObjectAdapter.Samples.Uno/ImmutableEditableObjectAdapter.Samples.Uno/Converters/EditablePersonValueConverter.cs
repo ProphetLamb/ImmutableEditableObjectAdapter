@@ -1,3 +1,6 @@
-﻿namespace ImmutableEditableObjectAdapter.Samples.Uno.Converters;
+﻿using Microsoft.UI.Xaml.Data;
 
-public sealed partial class EditablePersonValueConverter;
+namespace ImmutableEditableObjectAdapter.Samples.Uno.Converters;
+
+[ImmutableEditableValueConverter(typeof(EditablePerson))]
+public sealed partial class EditablePersonValueConverter : IValueConverter;

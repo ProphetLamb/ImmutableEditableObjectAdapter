@@ -9,8 +9,13 @@ public sealed record TypeDeclaration(
 
 public sealed record EditableAdapterProperty(string Name, string TypeName, string Modifiers);
 
+public sealed record EditableAdapterValueConverterContext(
+    TypeDeclaration Type,
+    EditableAdapterObjectContext AdapterObject
+);
+
 public sealed record EditableAdapterObjectContext(
-    TypeDeclaration Declaration,
+    TypeDeclaration Type,
     ImmutableArray<EditableAdapterProperty> Properties,
     string ContractTypeName,
     TypeDeclaration? ImmutableEditableValueConverterType
@@ -20,14 +25,14 @@ public sealed record EditableAdapterObjectContext(
     {
         using var _ = source.NullableEnable();
 
-        var ns = string.IsNullOrEmpty(Declaration.Namespace)
+        var ns = string.IsNullOrEmpty(Type.Namespace)
             ? default(SrcBuilder.SrcBlock?)
-            : source.Decl($"namespace {Declaration.Namespace}");
+            : source.Decl($"namespace {Type.Namespace}");
 
         source.Stmt("using global::System;").Stmt("using global::System.ComponentModel;").NL();
 
         source.Stmt("[global::System.Diagnostics.DebuggerDisplayAttribute(\"{DebuggerDisplay(),nq}\")]");
-        using (source.Decl($"{Declaration.Accessibility} partial class {Declaration.Name}"))
+        using (source.Decl($"{Type.Accessibility} partial class {Type.Name}"))
         {
             source.Stmt(
                 "[global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]"
@@ -47,7 +52,7 @@ public sealed record EditableAdapterObjectContext(
                 source.Stmt($"private ulong _changedFlags{flagStoreIndex};");
             }
 
-            using (source.Decl($"public {Declaration.Name}({ContractTypeName} originalValue)"))
+            using (source.Decl($"public {Type.Name}({ContractTypeName} originalValue)"))
             {
                 source.Stmt("_unedited = originalValue;");
             }
@@ -235,7 +240,7 @@ public sealed record EditableAdapterObjectContext(
                 using (source.If("IsEditing()"))
                 {
                     source.Stmt(
-                        $"throw new global::System.InvalidOperationException(\"{Declaration.Name} is being edited. Cannot begin edit again, or modify 'Unmodified' before EndEdit(), or CancelEdit() is called.\");"
+                        $"throw new global::System.InvalidOperationException(\"{Type.Name} is being edited. Cannot begin edit again, or modify 'Unmodified' before EndEdit(), or CancelEdit() is called.\");"
                     );
                 }
             }
@@ -245,7 +250,7 @@ public sealed record EditableAdapterObjectContext(
                 using (source.If("!IsEditing()"))
                 {
                     source.Stmt(
-                        $"throw new global::System.InvalidOperationException(\"{Declaration.Name} is not being edited. Cannot edit properties, besides 'Unmodified', before BeginEdit() is called.\");"
+                        $"throw new global::System.InvalidOperationException(\"{Type.Name} is not being edited. Cannot edit properties, besides 'Unmodified', before BeginEdit() is called.\");"
                     );
                 }
             }
@@ -253,7 +258,7 @@ public sealed record EditableAdapterObjectContext(
             using (source.Decl("internal string DebuggerDisplay()"))
             {
                 source.Stmt("global::System.Text.StringBuilder sb = new global::System.Text.StringBuilder();");
-                source.Stmt($"sb.Append(\"{Declaration.Name} {{ \");");
+                source.Stmt($"sb.Append(\"{Type.Name} {{ \");");
 
                 foreach (var p in Properties)
                 {
@@ -277,15 +282,15 @@ public sealed record EditableAdapterObjectContext(
         }
     }
 
-    public string EditableObjectExtensionsName => $"{Declaration.Name}Extensions";
+    public string EditableObjectExtensionsName => $"{Type.Name}Extensions";
 
     public bool GenerateEditableObjectExtensions(SrcBuilder source)
     {
         using var _ = source.NullableEnable();
-        var ns = string.IsNullOrEmpty(Declaration.Namespace)
+        var ns = string.IsNullOrEmpty(Type.Namespace)
             ? default(SrcBuilder.SrcBlock?)
-            : source.Decl($"namespace {Declaration.Namespace}");
-        using (source.Decl($"{Declaration.Accessibility} static partial class {EditableObjectExtensionsName}"))
+            : source.Decl($"namespace {Type.Namespace}");
+        using (source.Decl($"{Type.Accessibility} static partial class {EditableObjectExtensionsName}"))
         {
             if (ImmutableEditableValueConverterType is null)
             {
@@ -293,10 +298,10 @@ public sealed record EditableAdapterObjectContext(
             }
 
             using (source.Decl(
-                    $"public static {Declaration.Name} ToEditable(this {ContractTypeName} contract, global::System.Windows.Input.ICommand? command = null)"
+                    $"public static {Type.Name} ToEditable(this {ContractTypeName} contract, global::System.Windows.Input.ICommand? command = null)"
                 ))
             {
-                source.Stmt($"{Declaration.Name} editable = new {Declaration.Name}(contract);");
+                source.Stmt($"{Type.Name} editable = new {Type.Name}(contract);");
                 using (source.If("command != null"))
                 using (source.Decl("editable.Edited += (_, args) =>", ";"))
                 using (source.If("command.CanExecute(args)"))
@@ -310,9 +315,9 @@ public sealed record EditableAdapterObjectContext(
             if (ImmutableEditableValueConverterType is null)
             {
                 source.Pre("#else");
-                using (source.Decl($"public static {Declaration.Name} ToEditable(this {ContractTypeName} contract)"))
+                using (source.Decl($"public static {Type.Name} ToEditable(this {ContractTypeName} contract)"))
                 {
-                    source.Stmt($"return new {Declaration.Name}(contract);");
+                    source.Stmt($"return new {Type.Name}(contract);");
                 }
 
                 source.Pre("#endif");
@@ -320,7 +325,7 @@ public sealed record EditableAdapterObjectContext(
 
             using (source.PreIfEnd("HAS_UNO"))
             using (source.Decl(
-                    $"public static global::System.Collections.Immutable.IImmutableList<{Declaration.Name}> ToEditableList(this global::System.Collections.Immutable.IImmutableList<{ContractTypeName}> contractList, global::System.Windows.Input.ICommand? command = null)"
+                    $"public static global::System.Collections.Immutable.IImmutableList<{Type.Name}> ToEditableList(this global::System.Collections.Immutable.IImmutableList<{ContractTypeName}> contractList, global::System.Windows.Input.ICommand? command = null)"
                 ))
             {
                 source.Stmt("return contractList.Select(x => ToEditable(x, command)).ToImmutableArray();");
@@ -328,7 +333,7 @@ public sealed record EditableAdapterObjectContext(
 
             using (source.PreIfEnd("HAS_UNO"))
             using (source.Decl(
-                    $"public static global::Uno.Extensions.Reactive.IFeed<{Declaration.Name}> ToEditableFeed(this global::Uno.Extensions.Reactive.IFeed<{ContractTypeName}> feed, global::System.Windows.Input.ICommand? command = null)"
+                    $"public static global::Uno.Extensions.Reactive.IFeed<{Type.Name}> ToEditableFeed(this global::Uno.Extensions.Reactive.IFeed<{ContractTypeName}> feed, global::System.Windows.Input.ICommand? command = null)"
                 ))
             {
                 source.Stmt("return feed.Select(x => ToEditable(x, command));");
@@ -336,7 +341,7 @@ public sealed record EditableAdapterObjectContext(
 
             using (source.PreIfEnd("HAS_UNO"))
             using (source.Decl(
-                    $"public static global::Uno.Extensions.Reactive.IListFeed<{Declaration.Name}> ToEditableListFeed(this global::Uno.Extensions.Reactive.IListFeed<{ContractTypeName}> feed, global::System.Windows.Input.ICommand? command = null)"
+                    $"public static global::Uno.Extensions.Reactive.IListFeed<{Type.Name}> ToEditableListFeed(this global::Uno.Extensions.Reactive.IListFeed<{ContractTypeName}> feed, global::System.Windows.Input.ICommand? command = null)"
                 ))
             {
                 source.Stmt("return feed.AsFeed().Select(x => ToEditableList(x, command)).AsListFeed();");
@@ -352,7 +357,7 @@ public sealed record EditableAdapterObjectContext(
     }
 
     public string EditableObjectValueConverterName =>
-        ImmutableEditableValueConverterType?.Name ?? $"{Declaration.Name}ValueConverter";
+        ImmutableEditableValueConverterType?.Name ?? $"{Type.Name}ValueConverter";
 
     public bool GenerateEditableObjectValueConverter(SrcBuilder source)
     {
@@ -367,7 +372,7 @@ public sealed record EditableAdapterObjectContext(
             : source.Decl($"namespace {ImmutableEditableValueConverterType.Namespace}");
 
         using (source.Decl(
-                $"{ImmutableEditableValueConverterType.Accessibility} sealed partial class {EditableObjectValueConverterName} : global::Microsoft.UI.Xaml.Data.IValueConverter"
+                $"{ImmutableEditableValueConverterType.Accessibility} sealed partial class {EditableObjectValueConverterName}"
             ))
         {
             using (source.Decl(
@@ -394,7 +399,7 @@ public sealed record EditableAdapterObjectContext(
                 }
 
                 source.Stmt(
-                    $"_ => throw new NotSupportedException($\"{{nameof({EditableObjectValueConverterName})}} can only convert {{nameof({ContractTypeName})}} to {{nameof({Declaration.QualifiedName})}} types, as well as immutable lists and feeds thereof.\"),"
+                    $"_ => throw new NotSupportedException($\"{{nameof({EditableObjectValueConverterName})}} can only convert {{nameof({ContractTypeName})}} to {{nameof({Type.QualifiedName})}} types, as well as immutable lists and feeds thereof.\"),"
                 );
             }
 
@@ -404,25 +409,25 @@ public sealed record EditableAdapterObjectContext(
             using (source.Decl("return value switch", ";"))
             {
                 source.Stmt("null => null,");
-                source.Stmt($"{Declaration.QualifiedName} x => x.Unedited,");
+                source.Stmt($"{Type.QualifiedName} x => x.Unedited,");
                 using (source.PreIfEnd("HAS_UNO"))
                 {
                     source.Stmt(
-                        $"global::System.Collections.Immutable.IImmutableList<{Declaration.QualifiedName}> l => (global::System.Collections.Immutable.IImmutableList<{ContractTypeName}>)l.Select(x => x.Unedited).ToImmutableArray(),"
+                        $"global::System.Collections.Immutable.IImmutableList<{Type.QualifiedName}> l => (global::System.Collections.Immutable.IImmutableList<{ContractTypeName}>)l.Select(x => x.Unedited).ToImmutableArray(),"
                     );
                     source.Stmt(
-                        $"global::Uno.Extensions.Reactive.IFeed<{Declaration.QualifiedName}> f => f.Select(x => x.Unedited),"
+                        $"global::Uno.Extensions.Reactive.IFeed<{Type.QualifiedName}> f => f.Select(x => x.Unedited),"
                     );
                     source.Stmt(
-                        $"global::Uno.Extensions.Reactive.IFeed<global::System.Collections.Immutable.IImmutableList<{Declaration.QualifiedName}>> f => f.Select(global::System.Collections.Immutable.IImmutableList<{ContractTypeName}> (l) => l.Select(x => x.Unedited).ToImmutableArray()),"
+                        $"global::Uno.Extensions.Reactive.IFeed<global::System.Collections.Immutable.IImmutableList<{Type.QualifiedName}>> f => f.Select(global::System.Collections.Immutable.IImmutableList<{ContractTypeName}> (l) => l.Select(x => x.Unedited).ToImmutableArray()),"
                     );
                     source.Stmt(
-                        $"global::Uno.Extensions.Reactive.IListFeed<{Declaration.QualifiedName}> f => f.AsFeed().Select(global::System.Collections.Immutable.IImmutableList<{ContractTypeName}> (l) => l.Select(x => x.Unedited).ToImmutableArray()).AsListFeed(),"
+                        $"global::Uno.Extensions.Reactive.IListFeed<{Type.QualifiedName}> f => f.AsFeed().Select(global::System.Collections.Immutable.IImmutableList<{ContractTypeName}> (l) => l.Select(x => x.Unedited).ToImmutableArray()).AsListFeed(),"
                     );
                 }
 
                 source.Stmt(
-                    $"_ => throw new NotSupportedException($\"{{nameof({EditableObjectValueConverterName})}} can only convert {{nameof({Declaration.QualifiedName})}} back to {{nameof({ContractTypeName})}} types, as well as immutable lists and feeds thereof.\"),"
+                    $"_ => throw new NotSupportedException($\"{{nameof({EditableObjectValueConverterName})}} can only convert {{nameof({Type.QualifiedName})}} back to {{nameof({ContractTypeName})}} types, as well as immutable lists and feeds thereof.\"),"
                 );
             }
         }

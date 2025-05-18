@@ -20,6 +20,18 @@ public static class SyntaxExtensions
         return string.Join(".", nsList);
     }
 
+    public static SyntaxToken GetIdentifier(this NameSyntax name)
+    {
+        return name switch
+        {
+            AliasQualifiedNameSyntax x => x.Name.Identifier,
+            QualifiedNameSyntax x => x.Right.Identifier,
+            GenericNameSyntax x => x.Identifier,
+            IdentifierNameSyntax x => x.Identifier,
+            _ => throw new NotSupportedException(),
+        };
+    }
+
     /// <summary>Determines the trace from the node to the <see cref="NamespaceDeclarationSyntax"/>, by traversing the parents of the node.</summary>
     /// <param name="node">The node</param>
     /// <typeparam name="T">The type of parents allowed in the trace. Throws if the type of any parent doesnt match.</typeparam>
