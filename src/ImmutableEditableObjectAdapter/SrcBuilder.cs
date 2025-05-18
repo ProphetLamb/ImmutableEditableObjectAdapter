@@ -279,8 +279,8 @@ public class SrcBuilder
         Outdent();
         AppendIndent('}');
         Append(suffix);
+        Builder.AppendLine();
         AppendLine();
-        NL();
         return this;
     }
 
