@@ -80,7 +80,7 @@ public class SrcBuilder
 
     /// <summary>Appends the <see cref="IndentChars"/> to the builder.</summary>
     /// <param name="text">The text to append after the indent.</param>
-    public SrcBuilder AppendIndent(string text)
+    public SrcBuilder AppendIndent(string? text)
     {
         AppendIndent();
         Builder.Append(text);
@@ -562,6 +562,18 @@ public class SrcBuilder
             static (c, s) => c.Builder.Append(s),
             static (b) => b.Append(", "),
             static (b) => b.Append(");").NL()
+        );
+    }
+    public SrcColl Attr(string? attributeName)
+    {
+        AppendIndent('[');
+        Append(attributeName);
+        return new(
+            this,
+            static (b) => b.Append('('),
+            static (c, s) => c.Builder.Append(s),
+            static (b) => b.Append(", "),
+            static (b) => b.Append(")]").NL()
         );
     }
 

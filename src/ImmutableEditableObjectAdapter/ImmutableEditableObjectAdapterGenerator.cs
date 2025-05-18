@@ -263,10 +263,36 @@ public class ImmutableEditableObjectAdapterGenerator : IIncrementalGenerator
             return null;
         }
 
+        var attributes = context
+            .GetAttributes()
+            .Select(CollectAttributeDeclaration)
+            .Where(x => x is not null
+                && !PostInitializationSource.RequiredMemberAttributeQualifiedName.Equals(
+                    x.Type.QualifiedName,
+                    StringComparison.Ordinal
+                )
+            )
+            .ToImmutableArray();
+
         return new(
             Name: context.Name,
             Type: GetDeclaration(context.Type),
-            Modifiers: context.DeclaredAccessibility.ToString().Replace("|", "").ToLower(CultureInfo.InvariantCulture)
+            Modifiers: context.DeclaredAccessibility.ToString().Replace("|", "").ToLower(CultureInfo.InvariantCulture),
+            Attributes: attributes!
+        );
+    }
+
+    private static AttributeDeclaration? CollectAttributeDeclaration(AttributeData attribute)
+    {
+        if (attribute.AttributeClass is null)
+        {
+            return null;
+        }
+
+        return new(
+            GetDeclaration(attribute.AttributeClass),
+            [..attribute.ConstructorArguments.Select(x => x.ToCSharpString())],
+            [..attribute.NamedArguments.Select(x => new KeyValuePair<string, string>(x.Key, x.Value.ToCSharpString()))]
         );
     }
 }

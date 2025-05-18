@@ -4,6 +4,9 @@ namespace ImmutableEditableObjectAdapter;
 
 public static class PostInitializationSource
 {
+    public const string RequiredMemberAttributeQualifiedName =
+        "global::System.Runtime.CompilerServices.RequiredMemberAttribute";
+
     public const string EditableObjectAdapterMetadataName = "ImmutableEditableObjectAdapter`1";
 
     public const string ImmutableEditableValueConverterAttributeMetadataName =

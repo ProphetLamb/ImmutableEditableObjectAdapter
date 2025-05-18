@@ -10,7 +10,14 @@ public sealed record TypeDeclaration(
 public sealed record EditableAdapterProperty(
     string Name,
     TypeDeclaration Type,
-    string Modifiers
+    string Modifiers,
+    ImmutableArray<AttributeDeclaration> Attributes
+);
+
+public sealed record AttributeDeclaration(
+    TypeDeclaration Type,
+    ImmutableArray<string> ConstructorArguments,
+    ImmutableArray<KeyValuePair<string, string>> NamedArguments
 );
 
 public sealed record EditableAdapterValueConverterContext(
@@ -95,7 +102,9 @@ public sealed record EditableAdapterObjectContext(
                 source.Stmt(
                     "[global::System.Diagnostics.DebuggerBrowsable(global::System.Diagnostics.DebuggerBrowsableState.Never)]"
                 );
-                source.Stmt($"private {p.Type.QualifiedName} _changed{p.Name} = default({p.Type.QualifiedName})!;").NL();
+                source
+                    .Stmt($"private {p.Type.QualifiedName} _changed{p.Name} = default({p.Type.QualifiedName})!;")
+                    .NL();
 
                 source.Stmt(
                     "[global::System.ComponentModel.DataAnnotations.DisplayAttribute(AutoGenerateField = false)]"
@@ -126,6 +135,20 @@ public sealed record EditableAdapterObjectContext(
                 }
 
                 source.DocLine("inheritdoc", $"cref=\"{ContractType.QualifiedName}.{p.Name}\"");
+                foreach (var attribute in p.Attributes)
+                {
+                    using var a = source.Attr(attribute.Type.QualifiedName);
+                    foreach (var value in attribute.ConstructorArguments)
+                    {
+                        a.Add(value);
+                    }
+
+                    foreach (var kvp in attribute.NamedArguments)
+                    {
+                        a.Add($"{kvp.Key} = {kvp.Value}");
+                    }
+                }
+
                 using (source.Decl($"{p.Modifiers} {p.Type.QualifiedName} {p.Name}"))
                 {
                     source.Stmt($"get => {p.Name}PropertyChanged ? _changed{p.Name} : Unedited.{p.Name};");
