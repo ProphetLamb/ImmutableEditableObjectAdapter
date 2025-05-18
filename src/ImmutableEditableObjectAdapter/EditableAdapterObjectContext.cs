@@ -57,6 +57,7 @@ public sealed record EditableAdapterObjectContext(
                 source.Stmt("_unedited = originalValue;");
             }
 
+            source.Stmt("[global::System.ComponentModel.DataAnnotations(AutoGenerateField = false)]");
             using (source.Decl($"public {ContractTypeName} Unedited"))
             {
                 source.Stmt("get => _unedited;");
