@@ -1,4 +1,4 @@
-[![NuGet version](https://badge.fury.io/nu/ImmutableEditableObjectAdapter.svg)](https://www.nuget.org/packages/ImmutableEditableObjectAdapter)
+[![NuGet Version](https://img.shields.io/nuget/v/ImmutableEditableObjectAdapter)](https://www.nuget.org/packages/ImmutableEditableObjectAdapter) [![NuGet Downloads](https://img.shields.io/nuget/dt/ImmutableEditableObjectAdapter)](https://www.nuget.org/packages/ImmutableEditableObjectAdapter)
 
 ```bash
 dotnet add package ImmutableEditableObjectAdapter
