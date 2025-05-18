@@ -94,6 +94,7 @@ public sealed record EditableAdapterObjectContext(
                 );
                 source.Stmt($"private {p.TypeName} _changed{p.Name} = default({p.TypeName})!;").NL();
 
+                source.Stmt("[global::System.ComponentModel.DataAnnotations(AutoGenerateField = false)]");
                 using (source.Decl($"public bool {p.Name}PropertyChanged"))
                 {
                     var flagStoreIndex = (index / 64) + 1;
