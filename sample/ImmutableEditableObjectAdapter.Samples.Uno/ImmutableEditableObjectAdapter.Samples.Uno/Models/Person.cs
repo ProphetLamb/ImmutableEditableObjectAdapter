@@ -1,6 +1,12 @@
-﻿namespace ImmutableEditableObjectAdapter.Samples.Uno.Models;
+﻿using System.ComponentModel.DataAnnotations;
 
-public sealed record Person(string Name, string FavouriteColor, DateTimeOffset BirthDay, DateTimeOffset? DeceasedAt);
+namespace ImmutableEditableObjectAdapter.Samples.Uno.Models;
+
+public sealed record Person(
+    string Name,
+    [property: Display(Name = "Color")] string FavouriteColor,
+    DateTimeOffset BirthDay,
+    DateTimeOffset? DeceasedAt
+);
 
 public sealed partial class EditablePerson : System.ComponentModel.ImmutableEditableObjectAdapter<Person>;
-
