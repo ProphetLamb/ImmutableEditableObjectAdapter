@@ -195,7 +195,7 @@ public class ImmutableEditableObjectAdapterGenerator : IIncrementalGenerator
             .ToImmutableArray();
         return new(
             Type: GetDeclaration(declarationSymbol),
-            ContractTypeName: contractTypeInfo.GlobalQualifiedTypeName(),
+            ContractType: GetDeclaration(contractTypeInfo),
             Properties: contractTypeProperties!,
             ImmutableEditableValueConverterType: null
         );

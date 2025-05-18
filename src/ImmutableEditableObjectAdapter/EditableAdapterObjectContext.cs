@@ -17,7 +17,7 @@ public sealed record EditableAdapterValueConverterContext(
 public sealed record EditableAdapterObjectContext(
     TypeDeclaration Type,
     ImmutableArray<EditableAdapterProperty> Properties,
-    string ContractTypeName,
+    TypeDeclaration ContractType,
     TypeDeclaration? ImmutableEditableValueConverterType
 )
 {
@@ -40,7 +40,7 @@ public sealed record EditableAdapterObjectContext(
             source.Stmt(
                 "[global::System.Diagnostics.DebuggerBrowsable(global::System.Diagnostics.DebuggerBrowsableState.Never)]"
             );
-            source.Stmt($"private {ContractTypeName} _unedited;");
+            source.Stmt($"private {ContractType.QualifiedName} _unedited;");
             foreach (var flagStoreIndex in Enumerable.Range(1, (Properties.Length / 64) + 1))
             {
                 source.Stmt(
@@ -52,19 +52,19 @@ public sealed record EditableAdapterObjectContext(
                 source.Stmt($"private ulong _changedFlags{flagStoreIndex};");
             }
 
-            using (source.Decl($"public {Type.Name}({ContractTypeName} originalValue)"))
+            using (source.Decl($"public {Type.Name}({ContractType.QualifiedName} originalValue)"))
             {
                 source.Stmt("_unedited = originalValue;");
             }
 
-            source.Stmt("[global::System.ComponentModel.DataAnnotations(AutoGenerateField = false)]");
-            using (source.Decl($"public {ContractTypeName} Unedited"))
+            source.Stmt("[global::System.ComponentModel.DataAnnotations.DisplayAttribute(AutoGenerateField = false)]");
+            using (source.Decl($"public {ContractType.QualifiedName} Unedited"))
             {
                 source.Stmt("get => _unedited;");
                 using (source.Decl("set"))
                 {
                     source.Stmt("ThrowIfIsEditing();");
-                    source.Stmt($"{ContractTypeName} oldValue = _unedited;");
+                    source.Stmt($"{ContractType.QualifiedName} oldValue = _unedited;");
                     foreach (var p in Properties)
                     {
                         source.Stmt(
@@ -95,7 +95,7 @@ public sealed record EditableAdapterObjectContext(
                 );
                 source.Stmt($"private {p.TypeName} _changed{p.Name} = default({p.TypeName})!;").NL();
 
-                source.Stmt("[global::System.ComponentModel.DataAnnotations(AutoGenerateField = false)]");
+                source.Stmt("[global::System.ComponentModel.DataAnnotations.DisplayAttribute(AutoGenerateField = false)]");
                 using (source.Decl($"public bool {p.Name}PropertyChanged"))
                 {
                     var flagStoreIndex = (index / 64) + 1;
@@ -121,7 +121,7 @@ public sealed record EditableAdapterObjectContext(
                     }
                 }
 
-                source.DocLine("inheritdoc", $"cref=\"{ContractTypeName}.{p.Name}\"");
+                source.DocLine("inheritdoc", $"cref=\"{ContractType.QualifiedName}.{p.Name}\"");
                 using (source.Decl($"{p.Modifiers} {p.TypeName} {p.Name}"))
                 {
                     source.Stmt($"get => {p.Name}PropertyChanged ? _changed{p.Name} : Unedited.{p.Name};");
@@ -152,7 +152,7 @@ public sealed record EditableAdapterObjectContext(
             {
                 source.Stmt("ThrowIfNotEditing();");
                 source.Stmt("SetEditing(false);");
-                source.Stmt($"{ContractTypeName} unedited = _unedited;");
+                source.Stmt($"{ContractType.QualifiedName} unedited = _unedited;");
                 source.AppendIndent("bool unchanged = ((");
                 foreach (var flagSetIndex in Enumerable.Range(1, (Properties.Length / 64) + 1))
                 {
@@ -166,7 +166,7 @@ public sealed record EditableAdapterObjectContext(
                     source.Stmt("return;");
                 }
 
-                using (source.Decl($"{ContractTypeName} edited = unedited with", ";"))
+                using (source.Decl($"{ContractType.QualifiedName} edited = unedited with", ";"))
                 {
                     foreach (var p in Properties)
                     {
@@ -300,7 +300,7 @@ public sealed record EditableAdapterObjectContext(
             }
 
             using (source.Decl(
-                    $"public static {Type.Name} ToEditable(this {ContractTypeName} contract, global::System.Windows.Input.ICommand? command = null)"
+                    $"public static {Type.Name} ToEditable(this {ContractType.QualifiedName} contract, global::System.Windows.Input.ICommand? command = null)"
                 ))
             {
                 source.Stmt($"{Type.Name} editable = new {Type.Name}(contract);");
@@ -317,7 +317,7 @@ public sealed record EditableAdapterObjectContext(
             if (ImmutableEditableValueConverterType is null)
             {
                 source.Pre("#else");
-                using (source.Decl($"public static {Type.Name} ToEditable(this {ContractTypeName} contract)"))
+                using (source.Decl($"public static {Type.Name} ToEditable(this {ContractType.QualifiedName} contract)"))
                 {
                     source.Stmt($"return new {Type.Name}(contract);");
                 }
@@ -327,7 +327,7 @@ public sealed record EditableAdapterObjectContext(
 
             using (source.PreIfEnd("HAS_UNO"))
             using (source.Decl(
-                    $"public static global::System.Collections.Immutable.IImmutableList<{Type.Name}> ToEditableList(this global::System.Collections.Immutable.IImmutableList<{ContractTypeName}> contractList, global::System.Windows.Input.ICommand? command = null)"
+                    $"public static global::System.Collections.Immutable.IImmutableList<{Type.Name}> ToEditableList(this global::System.Collections.Immutable.IImmutableList<{ContractType.QualifiedName}> contractList, global::System.Windows.Input.ICommand? command = null)"
                 ))
             {
                 source.Stmt("return contractList.Select(x => ToEditable(x, command)).ToImmutableArray();");
@@ -335,7 +335,7 @@ public sealed record EditableAdapterObjectContext(
 
             using (source.PreIfEnd("HAS_UNO"))
             using (source.Decl(
-                    $"public static global::Uno.Extensions.Reactive.IFeed<{Type.Name}> ToEditableFeed(this global::Uno.Extensions.Reactive.IFeed<{ContractTypeName}> feed, global::System.Windows.Input.ICommand? command = null)"
+                    $"public static global::Uno.Extensions.Reactive.IFeed<{Type.Name}> ToEditableFeed(this global::Uno.Extensions.Reactive.IFeed<{ContractType.QualifiedName}> feed, global::System.Windows.Input.ICommand? command = null)"
                 ))
             {
                 source.Stmt("return feed.Select(x => ToEditable(x, command));");
@@ -343,7 +343,7 @@ public sealed record EditableAdapterObjectContext(
 
             using (source.PreIfEnd("HAS_UNO"))
             using (source.Decl(
-                    $"public static global::Uno.Extensions.Reactive.IListFeed<{Type.Name}> ToEditableListFeed(this global::Uno.Extensions.Reactive.IListFeed<{ContractTypeName}> feed, global::System.Windows.Input.ICommand? command = null)"
+                    $"public static global::Uno.Extensions.Reactive.IListFeed<{Type.Name}> ToEditableListFeed(this global::Uno.Extensions.Reactive.IListFeed<{ContractType.QualifiedName}> feed, global::System.Windows.Input.ICommand? command = null)"
                 ))
             {
                 source.Stmt("return feed.AsFeed().Select(x => ToEditableList(x, command)).AsListFeed();");
@@ -383,25 +383,25 @@ public sealed record EditableAdapterObjectContext(
             using (source.Decl("return value switch", ";"))
             {
                 source.Stmt("null => null,");
-                source.Stmt($"{ContractTypeName} x => {EditableObjectExtensionsName}.ToEditable(x),");
+                source.Stmt($"{ContractType.QualifiedName} x => {EditableObjectExtensionsName}.ToEditable(x),");
                 using (source.PreIfEnd("HAS_UNO"))
                 {
                     source.Stmt(
-                        $"global::System.Collections.Immutable.IImmutableList<{ContractTypeName}> x => {EditableObjectExtensionsName}.ToEditableList(x),"
+                        $"global::System.Collections.Immutable.IImmutableList<{ContractType.QualifiedName}> x => {EditableObjectExtensionsName}.ToEditableList(x),"
                     );
                     source.Stmt(
-                        $"global::Uno.Extensions.Reactive.IFeed<{ContractTypeName}> x => {EditableObjectExtensionsName}.ToEditableFeed(x),"
+                        $"global::Uno.Extensions.Reactive.IFeed<{ContractType.QualifiedName}> x => {EditableObjectExtensionsName}.ToEditableFeed(x),"
                     );
                     source.Stmt(
-                        $"global::Uno.Extensions.Reactive.IFeed<global::System.Collections.Immutable.IImmutableList<{ContractTypeName}>> x => {EditableObjectExtensionsName}.ToEditableListFeed(x.AsListFeed()).AsFeed(),"
+                        $"global::Uno.Extensions.Reactive.IFeed<global::System.Collections.Immutable.IImmutableList<{ContractType.QualifiedName}>> x => {EditableObjectExtensionsName}.ToEditableListFeed(x.AsListFeed()).AsFeed(),"
                     );
                     source.Stmt(
-                        $"global::Uno.Extensions.Reactive.IListFeed<{ContractTypeName}> x => {EditableObjectExtensionsName}.ToEditableListFeed(x),"
+                        $"global::Uno.Extensions.Reactive.IListFeed<{ContractType.QualifiedName}> x => {EditableObjectExtensionsName}.ToEditableListFeed(x),"
                     );
                 }
 
                 source.Stmt(
-                    $"_ => throw new NotSupportedException($\"{{nameof({EditableObjectValueConverterName})}} can only convert {{nameof({ContractTypeName})}} to {{nameof({Type.QualifiedName})}} types, as well as immutable lists and feeds thereof.\"),"
+                    $"_ => throw new NotSupportedException($\"{{nameof({EditableObjectValueConverterName})}} can only convert {{nameof({ContractType.QualifiedName})}} to {{nameof({Type.QualifiedName})}} types, as well as immutable lists and feeds thereof.\"),"
                 );
             }
 
@@ -415,21 +415,21 @@ public sealed record EditableAdapterObjectContext(
                 using (source.PreIfEnd("HAS_UNO"))
                 {
                     source.Stmt(
-                        $"global::System.Collections.Immutable.IImmutableList<{Type.QualifiedName}> l => (global::System.Collections.Immutable.IImmutableList<{ContractTypeName}>)l.Select(x => x.Unedited).ToImmutableArray(),"
+                        $"global::System.Collections.Immutable.IImmutableList<{Type.QualifiedName}> l => (global::System.Collections.Immutable.IImmutableList<{ContractType.QualifiedName}>)l.Select(x => x.Unedited).ToImmutableArray(),"
                     );
                     source.Stmt(
                         $"global::Uno.Extensions.Reactive.IFeed<{Type.QualifiedName}> f => f.Select(x => x.Unedited),"
                     );
                     source.Stmt(
-                        $"global::Uno.Extensions.Reactive.IFeed<global::System.Collections.Immutable.IImmutableList<{Type.QualifiedName}>> f => f.Select(global::System.Collections.Immutable.IImmutableList<{ContractTypeName}> (l) => l.Select(x => x.Unedited).ToImmutableArray()),"
+                        $"global::Uno.Extensions.Reactive.IFeed<global::System.Collections.Immutable.IImmutableList<{Type.QualifiedName}>> f => f.Select(global::System.Collections.Immutable.IImmutableList<{ContractType.QualifiedName}> (l) => l.Select(x => x.Unedited).ToImmutableArray()),"
                     );
                     source.Stmt(
-                        $"global::Uno.Extensions.Reactive.IListFeed<{Type.QualifiedName}> f => f.AsFeed().Select(global::System.Collections.Immutable.IImmutableList<{ContractTypeName}> (l) => l.Select(x => x.Unedited).ToImmutableArray()).AsListFeed(),"
+                        $"global::Uno.Extensions.Reactive.IListFeed<{Type.QualifiedName}> f => f.AsFeed().Select(global::System.Collections.Immutable.IImmutableList<{ContractType.QualifiedName}> (l) => l.Select(x => x.Unedited).ToImmutableArray()).AsListFeed(),"
                     );
                 }
 
                 source.Stmt(
-                    $"_ => throw new NotSupportedException($\"{{nameof({EditableObjectValueConverterName})}} can only convert {{nameof({Type.QualifiedName})}} back to {{nameof({ContractTypeName})}} types, as well as immutable lists and feeds thereof.\"),"
+                    $"_ => throw new NotSupportedException($\"{{nameof({EditableObjectValueConverterName})}} can only convert {{nameof({Type.QualifiedName})}} back to {{nameof({ContractType.QualifiedName})}} types, as well as immutable lists and feeds thereof.\"),"
                 );
             }
         }
